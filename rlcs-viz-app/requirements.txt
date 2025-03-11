@@ -1,0 +1,8 @@
+pandas
+Pillow
+plotly
+numpy
+scipy
+shinywidgets
+statsmodels
+fastparquet
