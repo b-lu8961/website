@@ -17,12 +17,6 @@ router.get('/', async (req, res) => {
     res.json(data);
 });
 
-//SELECT Rating, COUNT(*) FROM movie GROUP BY Rating
-//SELECT CAST(ROUND(Year / 5) * 5 as INTEGER), COUNT(*) FROM movie GROUP BY ROUND(Year / 5)
-//SELECT CAST(ROUND(Runtime / 30) * 30 as INTEGER), COUNT(*) FROM movie GROUP BY ROUND(Runtime / 30)
-//SELECT p.Name, COUNT(*) as MovieCount from person p join movie m where (m.actors LIKE p.ID || '|%' OR m.actors LIKE '%|' || p.id or m.actors LIKE '%|' || p.id || '|%') GROUP BY p.Name ORDER BY MovieCount DESC LIMIT 10
-//SELECT p.Name, COUNT(*) as MovieCount from person p join movie m where (m.director LIKE p.ID || '|%' OR m.director = '' || p.id or m.director LIKE '%|' || p.id || '|%') GROUP BY p.Name ORDER BY MovieCount DESC LIMIT 10
-
 router.get('/rating/:rating', async (req, res) => {
     checkCORS(req, res);
     const data = await movieDB.getByRating(parseFloat(req.params.rating));
@@ -52,8 +46,6 @@ router.get('/feed/:member', async (req, res) => {
     }
 });
 
-//SELECT p.Name, COUNT(*) as MovieCount from person p join movie m where (m.actors LIKE p.ID || '|%' OR m.actors LIKE '%|' || p.id or m.actors LIKE '%|' || p.id || '|%') GROUP BY p.Name ORDER BY MovieCount DESC LIMIT 10
-//SELECT p.Name, COUNT(*) as MovieCount from person p join movie m where (m.director LIKE p.ID || '|%' OR m.director = '' || p.id or m.director LIKE '%|' || p.id || '|%') GROUP BY p.Name ORDER BY MovieCount DESC LIMIT 10
 router.get('/groupby', async (req, res) => {
     checkCORS(req, res);
     
@@ -71,6 +63,30 @@ router.get('/groupby', async (req, res) => {
         } else {
             res.send([]);
         }
+    } catch (err) {
+        console.log(err);
+        res.send([]);
+    }
+});
+
+router.get("/top/:job", async (req, res) => {
+    checkCORS(req, res);
+
+    const jobName = req.params.job ? req.params.job : "Directors";
+    try {
+        const jobData = await movieDB.getTopJobs(jobName.slice(0, -1));
+        res.json(jobData);
+    } catch (err) {
+        console.log(err);
+        res.send([]);
+    }
+});
+
+router.get("/languages", async (req, res) => {
+    checkCORS(req, res);
+    try {
+        const languageData = await movieDB.getLanguages();
+        res.json(languageData);
     } catch (err) {
         console.log(err);
         res.send([]);

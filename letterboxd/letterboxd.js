@@ -1,6 +1,8 @@
 const bootstrap = window.bootstrap;
 const d3 = window.d3;
 
+const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w185";
+
 const histSelect = document.getElementById("histSelect");
 const boxdButton = document.getElementById("feedButton");
 const boxdInput = document.getElementById("feedInput");
@@ -70,7 +72,6 @@ function getFeed(username) {
 
     fetch(RSS_URL, {
         method: "GET",
-        mode: "cors"
     })
     .then(response => {
         if (!response.ok) {
@@ -94,7 +95,7 @@ function getFeed(username) {
     });
 }
 
-function visualizeSummary(data) {
+function drawHistogram(data) {
     const histContainer = document.getElementById("histContainer");
     histContainer.textContent = "";
     
@@ -138,7 +139,7 @@ function visualizeSummary(data) {
     const svg = d3.create("svg")
         .attr("width", "100%")
         .attr("height", "100%")
-        .attr("viewBox", "0 0 500 300")
+        .attr("viewBox", [0, 0, width, height])
         .attr("preserveAspectRatio", "xMinYMid meet");
     
     svg.append("g")
@@ -183,10 +184,140 @@ function getSummaryData() {
         method: "GET",
     })
     .then(response => response.json())
-    .then(data => visualizeSummary(data))
+    .then(data => drawHistogram(data))
     .catch(error => {
         console.log(error);
     });
+}
+
+function populateCarousel(data) {
+    let carouselId = "";
+    for (let i = 0; i < data.length; i++) {
+        if (i == 0) {
+            carouselId = "carouselFirst";
+        } else if (i == 1) {
+            carouselId = "carouselSecond";
+        } else {
+            carouselId = "carouselThird";
+        }
+        const carouselItem = document.getElementById(carouselId);
+        const carouselImage = carouselItem.querySelector("img");
+        const carouselName = carouselItem.querySelector("h5");
+        const carouselInfo = carouselItem.querySelector("p");
+        carouselName.textContent = data[i].Name;
+        carouselInfo.textContent = `#${i + 1} | ${data[i].Count} movies`;
+        if (data[i].Path) {
+            carouselImage.setAttribute("src", TMDB_IMAGE_BASE + data[i].Path);
+        }
+    }
+}
+
+function getJobData(jobName) {
+    let db_endpoint = `movies/top/${jobName}`;
+    if (document.documentURI.startsWith("http://localhost:8000/letterboxd/")) {
+        db_endpoint = "http://localhost:3000/" + db_endpoint
+    }
+
+    fetch(db_endpoint, {
+        method: "GET"
+    })
+    .then(response => response.json())
+    .then(data => populateCarousel(data))
+    .catch(error => {
+        console.log(error);
+    })
+}
+
+function drawPieChart(data) {
+    const languageDetail = document.getElementById("languageDetail");
+    languageDetail.textContent = `${data[0].Name}: ${data[0].Count} movies`;
+
+    const otherLangs = { Name: "Other", ISO: "++", Count: 0 }
+    let otherIndex = 0;
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].Count <= 4) {
+            if (otherIndex === 0) {
+                otherIndex = i;
+            }
+            otherLangs.Count += data[i].Count;
+        }
+    }
+    data = data.slice(0, otherIndex).concat(otherLangs);
+
+    const pieContainer = document.getElementById("pieContainer");
+    pieContainer.textContent = "";
+
+    const width = 175;
+    const height = 175;
+    const margin = 20;
+    const svg = d3.create("svg")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .attr("viewBox", [ -width / 2, -height / 2, width, height])
+        .attr("preserveAspectRatio", "xMinYMid meet");
+
+    const color = d3.scaleOrdinal()
+        .domain(data.map(d => d.ISO))
+        .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+
+    const pie = d3.pie()
+        .sort(null)
+        .value(d => d.Count);
+
+    const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius((width / 2) - 1);
+
+    const labelRadius = arc.outerRadius()() * 0.8;
+    const arcLabel = d3.arc()
+        .innerRadius(labelRadius)
+        .outerRadius(labelRadius);
+
+    const arcs = pie(data);
+    svg.append("g")
+        .attr("stroke", "white")
+        .attr("stroke-width", "0.5")
+    .selectAll()
+    .data(arcs)
+    .join("path")
+        .attr("fill", d => color(d.data.ISO))
+        .attr("d", arc)
+        .style("cursor", "pointer")
+    .append("title")
+        .text(d => `${d.data.Name}: ${d.data.Count}`);
+
+    svg.append("g")
+        .attr("text-anchor", "middle")
+    .selectAll()
+    .data(arcs)
+    .join("text")
+        .attr("transform", d => `translate(${arcLabel.centroid(d)})`)
+        .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.15).append("tspan")
+            .attr("y", "0.3em")
+            .style("font-size", "10px")
+            .text(d => d.data.ISO));
+
+    svg.selectAll("path").on("click", event => {
+        languageDetail.textContent = event.target.textContent + " movies";
+    });
+
+    pieContainer.append(svg.node());
+}
+
+function getLanguageData() {
+    let db_endpoint = `movies/languages`;
+    if (document.documentURI.startsWith("http://localhost:8000/letterboxd/")) {
+        db_endpoint = "http://localhost:3000/" + db_endpoint
+    }
+
+    fetch(db_endpoint, {
+        method: "GET"
+    })
+    .then(response => response.json())
+    .then(data => drawPieChart(data))
+    .catch(error => {
+        console.log(error);
+    })
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -214,10 +345,21 @@ pillList.forEach(pill => {
             }
         } else if (pill.id === "pills-summary-tab") {
             getSummaryData();
+            getJobData("directors");
+            getLanguageData();
         } else {
 
         }
     });
+});
+
+const carouselList = document.querySelectorAll('.list-group-item-action');
+carouselList.forEach(item => {
+    item.addEventListener("shown.bs.tab", event => {
+        const jobCarousel = document.getElementById("carouselTopList");
+        bootstrap.Carousel.getOrCreateInstance(jobCarousel).to(0);
+        getJobData(event.target.textContent);
+    })
 });
 
 boxdButton.onclick = () => {

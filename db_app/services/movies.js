@@ -15,7 +15,6 @@ async function getByRating(rating = 5) {
 }
 
 async function getRatingGroup() {
-    console.log("test");
     return new Promise((resolve, reject) => {
         db.all("SELECT Rating, COUNT(*) as Count FROM movie GROUP BY Rating", (err, rows) => {
             if (err) {
@@ -28,7 +27,6 @@ async function getRatingGroup() {
 }
 
 async function getYearGroup() {
-    console.log("test");
     return new Promise((resolve, reject) => {
         db.all("SELECT CAST(ROUND(Year / 10) * 10 as INTEGER) as Year, COUNT(*) as Count FROM movie GROUP BY ROUND(Year / 10)", (err, rows) => {
             if (err) {
@@ -41,7 +39,6 @@ async function getYearGroup() {
 }
 
 async function getRuntimeGroup() {
-    console.log("test");
     return new Promise((resolve, reject) => {
         db.all("SELECT CAST(ROUND(Runtime / 30) * 30 as INTEGER) as Runtime, COUNT(*) as Count FROM movie GROUP BY ROUND(Runtime / 30)", (err, rows) => {
             if (err) {
@@ -53,7 +50,33 @@ async function getRuntimeGroup() {
     });
 }
 
+async function getTopJobs(jobName) {
+    query = `SELECT p.Name, p.image_path as Path, COUNT(*) as Count from person p join movie m where instr('|' || m.${jobName} || '|', '|' || p.id || '|') > 0 GROUP BY p.Name ORDER BY Count DESC LIMIT 3`;
+    return new Promise((resolve, reject) => {
+        db.all(query, (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
+async function getLanguages() {
+    return new Promise((resolve, reject) => {
+        db.all("SELECT l.Name, l.iso_id as ISO, COUNT(*) as Count from language l join movie m where instr('|' || m.languages || '|', '|' || l.iso_id || '|') > 0 GROUP BY l.Name, l.iso_id ORDER BY Count DESC", (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
 module.exports = {
     getByRating, 
-    getRatingGroup, getYearGroup, getRuntimeGroup
+    getRatingGroup, getYearGroup, getRuntimeGroup,
+    getTopJobs, getLanguages
 }
