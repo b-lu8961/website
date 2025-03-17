@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/node
 
 const express = require('express');
 
@@ -15,5 +15,5 @@ app.get('/', (req, res) => {
 app.use('/movies', movieRouter);
 
 app.listen(port, () => {
-    console.log(`Example app listening on ${port}`);
+    console.log(`Website DB app listening on ${port}`);
 });
