@@ -93,4 +93,53 @@ router.get("/languages", async (req, res) => {
     }
 });
 
+router.get("/network", async (req, res) => {
+    checkCORS(req, res);
+    try {
+        const networkRows = await movieDB.getNetwork();
+        const networkData = { nodes: [], links: [] };
+        const actors = {};
+        const movies = {};
+        const linkData = {};
+
+        networkRows.forEach(elem => {
+            if (elem.ActorName in actors) {
+                actors[elem.ActorName].count++;
+            } else {
+                actors[elem.ActorName] = {count: 1, group: elem.Gender};
+            }
+            if (elem.MovieName in movies) {
+                movies[elem.MovieName].forEach(actor => {
+                    let key = [actor, elem.ActorName].sort().join("|");
+                    if (key in linkData) {
+                        linkData[key]++;
+                    } else {
+                        linkData[key] = 1;
+                    }
+                });
+                movies[elem.MovieName].push(elem.ActorName);
+            } else {
+                movies[elem.MovieName] = [elem.ActorName];
+            }
+        });
+
+        for (let actorName in actors) {
+            networkData.nodes.push({
+                name: actorName, 
+                group: actors[actorName].group, 
+                count: actors[actorName].count
+            });
+        }
+        for (let key in linkData) {
+            let pair = key.split("|");
+            networkData.links.push({source: pair[0], target: pair[1], count: linkData[key]});
+        }
+        console.log(networkData.nodes.length);
+        res.json(networkData);
+    } catch (err) {
+        console.log(err);
+        res.send([]);
+    }
+});
+
 module.exports = router;

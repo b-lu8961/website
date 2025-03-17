@@ -249,11 +249,10 @@ function drawPieChart(data) {
 
     const width = 175;
     const height = 175;
-    const margin = 20;
     const svg = d3.create("svg")
         .attr("width", "100%")
         .attr("height", "100%")
-        .attr("viewBox", [ -width / 2, -height / 2, width, height])
+        .attr("viewBox", [-width / 2, -height / 2, width, height])
         .attr("preserveAspectRatio", "xMinYMid meet");
 
     const color = d3.scaleOrdinal()
@@ -305,7 +304,7 @@ function drawPieChart(data) {
 }
 
 function getLanguageData() {
-    let db_endpoint = `movies/languages`;
+    let db_endpoint = "movies/languages";
     if (document.documentURI.startsWith("http://localhost:8000/letterboxd/")) {
         db_endpoint = "http://localhost:3000/" + db_endpoint
     }
@@ -317,6 +316,166 @@ function getLanguageData() {
     .then(data => drawPieChart(data))
     .catch(error => {
         console.log(error);
+    })
+}
+
+function circleColor(group) {
+    return group === 2 ? "#5BCEFA" : "#F5A9B8";
+}
+
+function drawActorNetwork(data) {
+    const networkContainer = document.getElementById("networkContainer");
+    networkContainer.textContent = "";
+
+    const width = 500;
+    const height = 500;
+    const svg = d3.create("svg")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .attr("viewBox", [-width / 2, -height / 2, width, height])
+        .attr("preserveAspectRatio", "xMinYMid meet");
+
+    const links = data.links.map(d => ({...d}));
+    const nodes = data.nodes.map(d => ({...d}));
+    const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.name))
+        .force("charge", d3.forceManyBody())
+        .force("x", d3.forceX())
+        .force("y", d3.forceY());
+
+    const link = svg.append("g")
+        .attr("stroke", "grey")
+        .attr("stroke-opacity", 0.4)
+    .selectAll("line")
+    .data(links)
+    .join("line")
+        .attr("stroke-width", d => 0.3 + ((d.count - 1) / 2));
+
+    const node = svg.append("g")
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.5)
+    .selectAll("circle")
+    .data(nodes)
+    .join("circle")
+        .attr("r", d => d.count)
+        .attr("fill", d => circleColor(d.group));
+
+    node.append("title")
+        .text(d => d.name);
+
+    node.call(d3.drag()
+        .on("start", dragstart)
+        .on("drag", dragging)
+        .on("end", dragend));  
+
+    function dragstart(event) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+    }
+    
+    // Update the subject (dragged node) position during drag.
+    function dragging(event) {
+        event.subject.fx = event.x;
+        event.subject.fy = event.y;
+    }
+    
+    // Restore the target alpha so the simulation cools after dragging ends.
+    // Unfix the subject position now that it’s no longer being dragged.
+    function dragend(event) {
+        if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+    }
+    
+    simulation.on("tick", () => {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        node
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y);
+    });
+
+    const zoom = d3.zoom()
+        .on("zoom", zoomed);
+
+    function zoomed(e) {
+        node
+            .attr("transform", e.transform);
+        link
+            .attr("transform", e.transform);
+    }
+
+    svg.call(zoom);
+
+    networkContainer.append(svg.node());
+}
+
+function getNetworkData() {
+    const networkContainer = document.getElementById("networkContainer");
+    if (networkContainer.hasChildNodes()) {
+        return;
+    }
+    let db_endpoint = "movies/network";
+    if (document.documentURI.startsWith("http://localhost:8000/letterboxd/")) {
+        db_endpoint = "http://localhost:3000/" + db_endpoint
+    }
+
+    fetch(db_endpoint, {
+        method: "GET"
+    })
+    .then(response => response.json())
+    .then(data => drawActorNetwork(data))
+    .catch(error => {
+        console.log(error);
+    })
+}
+
+function getMapData() {
+    const mapContainer = document.getElementById("mapContainer");
+    if (mapContainer.hasChildNodes()) {
+        return;
+    }
+
+    d3.json("../assets/world_map.geo.json").then(bb => {
+        let width = 1000, height = 500;
+        let projection = d3.geoNaturalEarth1();
+        projection.fitSize([width, height], bb);
+        let geoGenerator = d3.geoPath()
+            .projection(projection);
+
+        let svg = d3.create("svg")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .attr("viewBox", [0, 0, width, height])
+            .attr("preserveAspectRatio", "xMinYMid meet");
+        
+        let countries = svg.append("g")
+        .selectAll("path")
+        .data(bb.features)
+        .join("path")
+            .attr("d", geoGenerator)
+            .attr("fill", "grey")
+            .attr("stroke", "black")
+
+        countries.append("title")
+            .text(d => d.properties.name);
+
+        const zoom = d3.zoom()
+            .on("zoom", zoomed);
+    
+        function zoomed(e) {
+            d3.select("svg g")
+                .attr("transform", e.transform);
+        }
+    
+        svg.call(zoom);
+        
+        mapContainer.append(svg.node());
     })
 }
 
@@ -347,8 +506,10 @@ pillList.forEach(pill => {
             getSummaryData();
             getJobData("directors");
             getLanguageData();
+        } else if (pill.id === "pills-map-tab") {
+            getMapData();
         } else {
-
+            getNetworkData();
         }
     });
 });

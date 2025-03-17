@@ -75,8 +75,21 @@ async function getLanguages() {
     });
 }
 
+async function getNetwork() {
+    return new Promise((resolve, reject) => {
+        db.all("SELECT p.Name as ActorName, p.Gender, m.Name as MovieName from person p join movie m where instr('|' || m.Actors || '|', '|' || p.id || '|') > 0", (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
 module.exports = {
     getByRating, 
     getRatingGroup, getYearGroup, getRuntimeGroup,
-    getTopJobs, getLanguages
+    getTopJobs, getLanguages,
+    getNetwork
 }
