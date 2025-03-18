@@ -432,21 +432,29 @@ function getNetworkData() {
     .then(data => drawActorNetwork(data))
     .catch(error => {
         console.log(error);
-    })
+    });
 }
 
-function getMapData() {
-    const mapContainer = document.getElementById("mapContainer");
-    if (mapContainer.hasChildNodes()) {
-        return;
+function drawMap(data) {
+    if ("CN" in data) {
+        data["CN"].count += data["HK"].count;
+        data["CN"].avgRating = ((data["CN"].avgRating * data["CN"].count) + (data["HK"].avgRating * data["HK"].count)) / data["CN"].count;
+    } else {
+        data["CN"] = data["HK"];
     }
-
+    data["TW"]
+    const mapDetail = document.getElementById("mapDetail");
+    mapDetail.textContent = `United States of America | ${data["US"].count} movies | ${data["US"].avgRating.toPrecision(3)} average rating`;
     d3.json("../assets/world_map.geo.json").then(bb => {
         let width = 1000, height = 500;
         let projection = d3.geoNaturalEarth1();
         projection.fitSize([width, height], bb);
         let geoGenerator = d3.geoPath()
             .projection(projection);
+
+        const maxCount = data["US"].count;
+        const color = d3.scaleSequential(d3.interpolateWarm);
+        console.log(color(10 / maxCount), color(20 / maxCount));
 
         let svg = d3.create("svg")
             .attr("width", "100%")
@@ -459,12 +467,39 @@ function getMapData() {
         .data(bb.features)
         .join("path")
             .attr("d", geoGenerator)
-            .attr("fill", "grey")
+            .attr("fill", d => {
+                let countryCode = d.properties.iso_a2;
+                countryCode = countryCode === "CN-TW" ? "TW" : countryCode;
+                if (countryCode in data) {
+                    return color(data[countryCode].count / maxCount);
+                } else {
+                    return "lightgrey";
+                }
+            })
             .attr("stroke", "black")
 
         countries.append("title")
-            .text(d => d.properties.name);
+            .text(d => {
+                let countryCode = d.properties.iso_a2;
+                countryCode = countryCode === "CN-TW" ? "TW" : countryCode;
+                if (countryCode in data) {
+                    const movieCount = data[countryCode].count;
+                    const suffix = movieCount === 1 ? "movie" : "movies";
+                    let infoString = `${d.properties.name} | ${movieCount} ${suffix}`;
+                    if (data[countryCode].avgRating) {
+                        infoString += ` | ${data[countryCode].avgRating.toPrecision(3)} average rating`
+                    }
+                    return infoString;
+                } else {
+                    return d.properties.name;
+                }
+                
+            });
 
+        countries.on("click", event => {
+            mapDetail.textContent = event.target.textContent;
+        });
+        
         const zoom = d3.zoom()
             .on("zoom", zoomed);
     
@@ -476,7 +511,28 @@ function getMapData() {
         svg.call(zoom);
         
         mapContainer.append(svg.node());
+    });
+}
+
+function getCountryData() {
+    const mapContainer = document.getElementById("mapContainer");
+    if (mapContainer.hasChildNodes()) {
+        return;
+    }
+
+    let db_endpoint = "movies/countries";
+    if (document.documentURI.startsWith("http://localhost:8000/letterboxd/")) {
+        db_endpoint = "http://localhost:3000/" + db_endpoint
+    }
+
+    fetch(db_endpoint, {
+        method: "GET"
     })
+    .then(response => response.json())
+    .then(data => drawMap(data))
+    .catch(error => {
+        console.log(error);
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -507,7 +563,7 @@ pillList.forEach(pill => {
             getJobData("directors");
             getLanguageData();
         } else if (pill.id === "pills-map-tab") {
-            getMapData();
+            getCountryData();
         } else {
             getNetworkData();
         }

@@ -75,6 +75,20 @@ async function getLanguages() {
     });
 }
 
+async function getCountries() {
+    return new Promise((resolve, reject) => {
+        db.all("SELECT c.Name, c.iso_id as ISO, COUNT(*) as Count, AVG(m.rating) as AvgRating from country c join movie m where instr('|' || m.countries || '|', '|' || c.iso_id || '|') > 0 GROUP BY c.Name, c.iso_id ORDER BY Count DESC", (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
+
+
 async function getNetwork() {
     return new Promise((resolve, reject) => {
         db.all("SELECT p.Name as ActorName, p.Gender, m.Name as MovieName from person p join movie m where instr('|' || m.Actors || '|', '|' || p.id || '|') > 0", (err, rows) => {
@@ -90,6 +104,6 @@ async function getNetwork() {
 module.exports = {
     getByRating, 
     getRatingGroup, getYearGroup, getRuntimeGroup,
-    getTopJobs, getLanguages,
+    getTopJobs, getLanguages, getCountries,
     getNetwork
 }

@@ -93,6 +93,21 @@ router.get("/languages", async (req, res) => {
     }
 });
 
+router.get("/countries", async (req, res) => {
+    checkCORS(req, res);
+    try {
+        const countryData = await movieDB.getCountries();
+        const countryObj = {};
+        countryData.forEach(elem => {
+            countryObj[elem.ISO] = {name: elem.Name, count: elem.Count, avgRating: elem.AvgRating};
+        })
+        res.json(countryObj);
+    } catch (err) {
+        console.log(err);
+        res.send([]);
+    }
+});
+
 router.get("/network", async (req, res) => {
     checkCORS(req, res);
     try {
@@ -134,7 +149,6 @@ router.get("/network", async (req, res) => {
             let pair = key.split("|");
             networkData.links.push({source: pair[0], target: pair[1], count: linkData[key]});
         }
-        console.log(networkData.nodes.length);
         res.json(networkData);
     } catch (err) {
         console.log(err);
