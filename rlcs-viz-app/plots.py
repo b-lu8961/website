@@ -43,9 +43,11 @@ def draw_radar(event, player):
     X_MID, Y_MID = img.width / 2, img.height  / 2
     RADIUS, IN_RAD = 650, 150
     
+    total = 0
     for i in range(len(STAT_NAMES)):
         stat = STAT_NAMES[i]
         pctile = percentiles[stat]
+        total += pctile
         start_ang, end_ang = (360 / 12) * i, (360 / 12) * (i + 1)
 
         # Slice
@@ -89,7 +91,7 @@ def draw_radar(event, player):
 
     draw.ellipse([(X_MID - RADIUS, Y_MID - RADIUS), (X_MID + RADIUS, Y_MID + RADIUS)], outline=REGION_COLORS[player_data["Region"]], width=7)
     draw.ellipse([(X_MID - IN_RAD, Y_MID - IN_RAD), (X_MID + IN_RAD, Y_MID + IN_RAD)], fill=WHITE, outline=DARK_GREY, width=5)
-    draw.multiline_text((X_MID, Y_MID), f"{player_data["GP"]} GP\n{round(player_data["SP"] / 60)} MINS", 
+    draw.multiline_text((X_MID, Y_MID), f"{player_data["GP"]} GP\n{round(player_data["SP"] / 60)} MINS\n{round(total / 100, 2)} RTG", 
         font=get_font(60), fill=BLACK, align="center", anchor="mm")
     
     #output_path = os.path.join(APP_DIR, "output", f"{event}_{player}_radar.png").replace(" ", "_")

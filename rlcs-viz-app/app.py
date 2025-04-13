@@ -51,25 +51,18 @@ app_ui = ui.page_navbar(
                 ui.input_action_button("btn_two", "Update"),
                 ui.input_dark_mode()
             ),
-            ui.layout_columns(
-                ui.column(
-                    12,
-                    ui.card(
-                        ui.card_header(ui.output_text("txt_one")),
-                        ui.output_plot("img_one"),
-                        full_screen=True
-                    )
-                    # ui.output_text("txt_one"),
-                    # ui.output_plot("img_one", width="175%")
+            ui.layout_column_wrap(
+                ui.card(
+                    ui.card_header(ui.output_text("txt_one")),
+                    ui.output_plot("img_one"),
+                    full_screen=True
                 ),
-                ui.column(
-                    12,
-                    ui.card(
-                        ui.card_header(ui.output_text("txt_two")),
-                        ui.output_plot("img_two"),
-                        full_screen=True
-                    )
-                )
+                ui.card(
+                    ui.card_header(ui.output_text("txt_two")),
+                    ui.output_plot("img_two"),
+                    full_screen=True
+                ),
+                width="400px"
             ),
             ui.p("Bar height shows percentile rank vs all single-event performances since RLCS 24"),
             height="85vh"

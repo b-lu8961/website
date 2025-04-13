@@ -454,7 +454,6 @@ function drawMap(data) {
 
         const maxCount = data["US"].count;
         const color = d3.scaleSequential(d3.interpolateWarm);
-        console.log(color(10 / maxCount), color(20 / maxCount));
 
         let svg = d3.create("svg")
             .attr("width", "100%")
