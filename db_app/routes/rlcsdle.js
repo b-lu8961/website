@@ -14,8 +14,8 @@ function checkCORS(req, res) {
 router.get('/', async (req, res) => {
     checkCORS(req, res);
 
-    let event = await rlcsDB.getRandomEvent();
-    res.send(event);
+    let roundData = await rlcsDB.getRandomRound();
+    res.send(roundData);
 });
 
 router.get('/series/:ids', async (req, res) => {

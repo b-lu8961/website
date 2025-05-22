@@ -14,6 +14,27 @@ async function getConn() {
     return conn.db("rlcs");
 }
 
+async function getRandomRound() {
+    let roundData = []
+    let season = Math.random() > 0.5 ? "2025" : "2024";
+    const evQuery = { name: { $regex: season }};
+
+    let db = await getConn();
+    let eventColl = db.collection("events");
+    let eventRes = await eventColl.findOne(evQuery);
+    
+    const teamName = Object.keys(eventRes["teams"])[Math.floor(Math.random() * 16)]
+    let team = eventRes["teams"][teamName];
+    roundData.push([eventRes["name"], eventRes["url"], teamName, team])
+
+    const srQuery = { bc: { $in: team["series"] }};
+    let seriesColl = db.collection("series");
+    let seriesRes = await seriesColl.find(srQuery).toArray();
+    roundData.push(seriesRes);
+
+    return roundData;
+}
+
 async function getRandomEvent() {
     let db = await getConn();
     let coll = db.collection("events");
@@ -35,4 +56,4 @@ async function getSeriesFromIds(idList) {
     return results;
 }
 
-module.exports = {getRandomEvent, getSeriesFromIds};
+module.exports = {getRandomEvent, getRandomRound, getSeriesFromIds};
