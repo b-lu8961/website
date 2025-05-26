@@ -1,7 +1,16 @@
 const bootstrap = window.bootstrap;
 
-const testButton = document.getElementById("test-button");
-const guessButton = document.getElementById("guess-button");
+const fetchButton = document.getElementById("test-button");
+const newGameButton = document.getElementById("newGameButton");
+const guessButton = document.getElementById("guessButton");
+const shareButton = document.getElementById("shareButton");
+
+const seasonSelect = document.getElementById("seasonSelect");
+const splitSelect = document.getElementById("splitSelect");
+const eventSelect = document.getElementById("eventSelect");
+const teamSelect = document.getElementById("teamSelect");
+
+const resultModal = document.getElementById("resultModal");
 
 function setCharAt(str, idx, chr) {
     return str.substring(0, idx) + chr + str.substring(idx + 1);
@@ -103,9 +112,21 @@ function addTimoutColumn(headRow, takeRow, notRow, footRow) {
     footRow.appendChild(document.createElement("td"));
 }
 
+function getSeriesResult(series, guessTeam) {
+    if (series["teams"][0] === guessTeam) {
+        return series["wins"][0] > series["wins"][1] ? "W" : "L";
+    } else {
+        return series["wins"][1] > series["wins"][0] ? "W" : "L";
+    }
+}
+
 function getTeamName(teamName, guessTeam, guessNumber) {
     if (teamName === guessTeam) {
-        return "(?)";
+        if (guessNumber < 7) {
+            return "(<strong>&nbsp;?&nbsp;</strong>)";
+        } else {
+            return `(<strong>&nbsp;${teamName}&nbsp;</strong>)`;
+        }
     } else {
         if (guessNumber === 0) {
             return "Opp. Team";
@@ -126,38 +147,43 @@ function getTeamName(teamName, guessTeam, guessNumber) {
 }
 
 function setSeriesTitle(elem, seriesData, guessTeam, guessNumber) {
+    let seriesRes = getSeriesResult(seriesData, guessTeam);
     if (guessNumber === 0) {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.textContent = `Stage ? | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `${seriesRes} | Stage ? | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
     } else if (guessNumber === 1) {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.textContent = `${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
     } else if (guessNumber === 2) {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.textContent = `${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+    } else if (guessNumber < 6) {
+        let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
+        let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
+        elem.innerHTML = `${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
     } else {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.textContent = `${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
     }
 }
 
 function setSeriesTeams(elemOne, elemTwo, seriesData, guessTeam, guessNumber) {
     if (guessNumber === 0) {
-        elemOne.textContent = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
-        elemTwo.textContent = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
+        elemOne.innerHTML = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
+        elemTwo.innerHTML = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
     } else if (guessNumber === 1) {
-        elemOne.textContent = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
-        elemTwo.textContent = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
+        elemOne.innerHTML = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
+        elemTwo.innerHTML = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
     } else if (guessNumber === 2) {
-        elemOne.textContent = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
-        elemTwo.textContent = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
+        elemOne.innerHTML = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
+        elemTwo.innerHTML = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
     } else {
-        elemOne.textContent = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
-        elemTwo.textContent = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
+        elemOne.innerHTML = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
+        elemTwo.innerHTML = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
     }
 }
 
@@ -237,8 +263,45 @@ function populateSeries(seriesData, guessNumber) {
     }
 }
 
-function getRound() {
-    let RLCS_URL = "http://localhost:3000/rlcsdle"
+function addSelectOptions(elem, options) {
+    elem.appendChild(document.createElement("option"));
+    let sorted = options.sort();
+    for (opt of sorted) {
+        let optElem = elem.appendChild(document.createElement("option"));
+        optElem.textContent = opt;
+    }
+}
+
+function resetGuesses() {
+    const guessList = document.getElementById("guess-list");
+    guessList.textContent = "";
+    
+    seasonSelect.textContent = "";
+    splitSelect.setAttribute("disabled", "");
+    splitSelect.textContent = "";
+    eventSelect.setAttribute("disabled", "");
+    eventSelect.textContent = "";
+    teamSelect.setAttribute("disabled", "");
+    teamSelect.textContent = "";
+    
+    let SEASON_URL = "http://localhost:3000/rlcsdle/year"
+    fetch(SEASON_URL, {
+        method: "GET"
+    })
+    .then(response => {
+        if (!response.ok) {
+            return [];
+        }
+
+        return response.json();
+    })
+    .then(response => {
+        addSelectOptions(seasonSelect, response);
+    });
+}
+
+function getRound(regionName="LAN") {
+    let RLCS_URL = `http://localhost:3000/rlcsdle/region/${regionName}`;
 
     fetch(RLCS_URL, {
         method: "GET"
@@ -252,15 +315,15 @@ function getRound() {
     })
     .then(response => {
         localStorage.setItem("guessNumber", "0");
-        localStorage.setItem("eventID", response[0][0]);
+        localStorage.setItem("eventID", JSON.stringify(response[0][0]));
         localStorage.setItem("eventURL", response[0][1]);
         localStorage.setItem("teamName", response[0][2]);
         localStorage.setItem("teamData", JSON.stringify(response[0][3]));
         localStorage.setItem("seriesData", JSON.stringify(response[1]));
 
+        resetGuesses();
         populateSeries(response[1], 0);
         populateScore(response[0][3], 0);
-        console.log(0);
     });
     
 }
@@ -277,7 +340,8 @@ function addGuessSection(elem, select, answer) {
 }
 
 function checkGuess() {
-    let answer = localStorage.getItem("eventID").split("|");
+    let eventInfo = JSON.parse(localStorage.getItem("eventID"));
+    let teamName = localStorage.getItem("teamName");
 
     const guessList = document.getElementById("guess-list");
     const templateBase = document.getElementById("guessTemplate");
@@ -286,40 +350,214 @@ function checkGuess() {
     
     const seasonSelect = document.getElementById("seasonSelect");
     const seasonBox = guessElem.appendChild(document.createElement("div"));
-    let hasSeason = addGuessSection(seasonBox, seasonSelect, answer[0]);
+    let hasSeason = addGuessSection(seasonBox, seasonSelect, String(eventInfo[0]));
     
     const splitSelect = document.getElementById("splitSelect");
     const splitBox = guessElem.appendChild(document.createElement("div"));
-    let hasSplit = addGuessSection(splitBox, splitSelect, answer[1]);
+    let hasSplit = addGuessSection(splitBox, splitSelect, eventInfo[1]);
 
     const eventSelect = document.getElementById("eventSelect");
     const eventBox = guessElem.appendChild(document.createElement("div"));
-    let hasEvent = addGuessSection(eventBox, eventSelect, answer[2]);
+    let hasEvent = addGuessSection(eventBox, eventSelect, eventInfo[3]);
 
     const teamSelect = document.getElementById("teamSelect");
     const teamBox = guessElem.appendChild(document.createElement("div"));
-    let hasTeam = addGuessSection(teamBox, teamSelect, answer[3]);
+    let hasTeam = addGuessSection(teamBox, teamSelect, teamName);
 
     guessList.appendChild(guessTemplate);
+    let guessResult = [hasSeason, hasSplit, hasEvent, hasTeam];
+    if (localStorage.getItem("guessNumber") === "0") {
+        let guessLog = [guessResult];
+        localStorage.setItem("guessLog", JSON.stringify(guessLog));
+    } else {
+        let guessLog = JSON.parse(localStorage.getItem("guessLog"));
+        guessLog.push(guessResult);
+        localStorage.setItem("guessLog", JSON.stringify(guessLog));
+    }
 
     return hasSeason && hasSplit && hasEvent && hasTeam;
 }
 
-testButton.onclick = () => {
+seasonSelect.onchange = () => {
+    splitSelect.textContent = "";
+    if (seasonSelect.value === "") {
+        splitSelect.setAttribute("disabled", "");
+        eventSelect.setAttribute("disabled", "");
+        teamSelect.setAttribute("disabled", "");
+        return;
+    }
+    splitSelect.removeAttribute("disabled");
+
+    let RLCS_URL = "http://localhost:3000/rlcsdle/season/";
+
+    fetch(RLCS_URL + String(seasonSelect.value), {
+        method: "GET"
+    })
+    .then(response => {
+        if (!response.ok) {
+            return [];
+        }
+        
+        return response.json();
+    })
+    .then(response => {
+        addSelectOptions(splitSelect, response);
+    });
+}
+
+splitSelect.onchange = () => {
+    eventSelect.textContent = "";
+    if (splitSelect.value === "") {
+        eventSelect.setAttribute("disabled", "");
+        teamSelect.setAttribute("disabled", "");
+        return;
+    }
+    eventSelect.removeAttribute("disabled");
+
+    let SPLIT_URL = "http://localhost:3000/rlcsdle/split/";
+    let eventInfo = JSON.parse(localStorage.getItem("eventID"));
+    let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];
+    let params = `${String(seasonSelect.value)}/${splitSelect.value}/${region}`;
+    fetch(SPLIT_URL + params, {
+        method: "GET"
+    })
+    .then(response => {
+        if (!response.ok) {
+            return [];
+        }
+        
+        return response.json();
+    })
+    .then(response => {
+        addSelectOptions(eventSelect, response);
+    });
+}
+
+eventSelect.onchange = () => {
+    teamSelect.textContent = "";
+    if (eventSelect.value === "") {
+        teamSelect.setAttribute("disabled", "");
+        return;
+    }
+    teamSelect.removeAttribute("disabled");
+
+    let EVENT_URL = "http://localhost:3000/rlcsdle/event/";
+    let eventInfo = JSON.parse(localStorage.getItem("eventID"));
+    let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];
+    let params = `${seasonSelect.value}/${splitSelect.value}/${region}/${eventSelect.value}`;
+    fetch(EVENT_URL + params, {
+        method: "GET"
+    })
+    .then(response => {
+        if (!response.ok) {
+            return [];
+        }
+        
+        return response.json();
+    })
+    .then(response => {
+        addSelectOptions(teamSelect, response);
+    });
+}
+
+teamSelect.onchange = () => {
+    if (teamSelect.value === "") {
+        guessButton.setAttribute("disabled", "");
+    } else {
+        if (parseInt(localStorage.getItem("guessNumber")) < 7) {
+            guessButton.removeAttribute("disabled");
+        }
+    }
+};
+
+fetchButton.onclick = () => {
     getRound();
 }
 
+newGameButton.onclick = () => {
+    const newGameSelect = document.getElementById("gameRegionSelect");
+    getRound(newGameSelect.value);
+}
+
 guessButton.onclick = () => {
+    let guessNumber = parseInt(localStorage.getItem("guessNumber")) + 1;
+    guessButton.setAttribute("disabled", "");
     if (checkGuess()) {
+        populateSeries(null, 10);
+        populateScore(null, 10);
 
+        const modalElem = document.getElementById("resultModal")
+        modalElem.setAttribute("data-bs-result", "success");
+        const resultModal = new bootstrap.Modal(modalElem);
+        resultModal.show();
+    } else if (guessNumber === 6) {
+        // out of guesses
+        const modalElem = document.getElementById("resultModal")
+        modalElem.setAttribute("data-bs-result", "fail");
+        const resultModal = new bootstrap.Modal(modalElem);
+        resultModal.show();
     } else {
-
-
-        let guessNumber = parseInt(localStorage.getItem("guessNumber")) + 1;
         populateSeries(null, guessNumber);
         populateScore(null, guessNumber);
 
-        console.log(guessNumber);
         localStorage.setItem("guessNumber", String(guessNumber));
     }
+}
+
+resultModal.addEventListener("show.bs.modal", event => {
+    const modalHeader = document.getElementById("modalHeader");
+    const modalIntro = document.getElementById("modalIntro");
+    const modalEvent = document.getElementById("modalEvent");
+    const modalTeam = document.getElementById("modalTeam");
+    //const modalImage = document.getElementById("modalImage");
+
+    const gameResult = resultModal.getAttribute("data-bs-result");
+    if (gameResult === "success") {
+        modalHeader.textContent = "Congrats!";
+        modalIntro.textContent = "You got it! The answer was:";
+    } else {
+        modalHeader.textContent = "Sorry!";
+        modalHeader.textContent = "Better luck next time! The answer was:";
+    }
+
+    let eventID = JSON.parse(localStorage.getItem("eventID"));
+    modalEvent.textContent = eventID.join(", ");
+
+    let teamName = localStorage.getItem("teamName")
+    modalTeam.textContent = teamName;
+
+    // TODO: need new image source
+    // let teamData = JSON.parse(localStorage.getItem("teamData"));
+    // modalImage.setAttribute("alt", `${teamName} logo`);
+    // modalImage.setAttribute("src", "https://liquipedia.net" + teamData["logo"]);
+});
+
+shareButton.onclick = () => {
+    const guessLog = JSON.parse(localStorage.getItem("guessLog"));
+    let copyText = "RLCSdle "
+    let guessText = "";
+    for (let i = 0; i < guessLog.length; i++) {
+        let guess = guessLog[i];
+        for (res of guess) {
+            if (res) {
+                guessText += "🟩";
+            } else {
+                guessText += "⬛";
+            }
+        }
+        guessText += '\n';
+
+        if (i === 5 && (guess[0] && guess[1] && guess[2] && guess[3])) {
+            copyText += "6/6\n\n";
+        } else if (i === 5) {
+            copyText += "X/6\n\n";
+        } else if (i === guessLog.length - 1) {
+            copyText += `${i + 1}/6\n\n`;
+        } else {
+            continue;
+        }
+    }
+
+    navigator.clipboard.writeText(copyText + guessText);
+    alert("Result copied to clipboard.");
 }

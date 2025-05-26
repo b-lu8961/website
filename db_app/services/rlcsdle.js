@@ -3,8 +3,8 @@ const mongodb = require("mongodb");
 const Config = require("../config");
 const client = new mongodb.MongoClient(Config.MONGO_CONN_STRING);
 
+let conn = null;
 async function getConn() {
-    let conn;
     try {
         conn = await client.connect();
     } catch(e) {
@@ -16,8 +16,8 @@ async function getConn() {
 
 async function getRandomRound() {
     let roundData = []
-    let season = Math.random() > 0.5 ? "2025" : "2024";
-    const evQuery = { name: { $regex: season }};
+    let seasonVal = Math.random() > 0.5 ? 2025 : 2024;
+    const evQuery = { season: { $eq: seasonVal }};
 
     let db = await getConn();
     let eventColl = db.collection("events");
@@ -25,7 +25,8 @@ async function getRandomRound() {
     
     const teamName = Object.keys(eventRes["teams"])[Math.floor(Math.random() * 16)]
     let team = eventRes["teams"][teamName];
-    roundData.push([eventRes["name"], eventRes["url"], teamName, team])
+    let eventData = [eventRes["season"], eventRes["split"], eventRes["region"], eventRes["name"]];
+    roundData.push([eventData, eventRes["url"], teamName, team])
 
     const srQuery = { bc: { $in: team["series"] }};
     let seriesColl = db.collection("series");
@@ -35,16 +36,26 @@ async function getRandomRound() {
     return roundData;
 }
 
-async function getRandomEvent() {
-    let db = await getConn();
-    let coll = db.collection("events");
-    let results = await coll.find({}).toArray();
+async function getRoundByRegion(regionVal) {
+    let roundData = []
+    const evQuery = [{ $match: { region: regionVal } }, { $sample: { size: 1 } }];
 
-    if (Math.random() > 0.5) {
-        return results[0];
-    } else {
-        return results[1];
-    }
+    let db = await getConn();
+    let eventColl = db.collection("events");
+    let eventList = await eventColl.aggregate(evQuery).toArray();
+    let eventRes = eventList[0];
+    
+    const teamName = Object.keys(eventRes["teams"])[Math.floor(Math.random() * 16)]
+    let team = eventRes["teams"][teamName];
+    let eventData = [eventRes["season"], eventRes["split"], eventRes["region"], eventRes["name"]];
+    roundData.push([eventData, eventRes["url"], teamName, team])
+
+    const srQuery = { bc: { $in: team["series"] }};
+    let seriesColl = db.collection("series");
+    let seriesRes = await seriesColl.find(srQuery).toArray();
+    roundData.push(seriesRes);
+
+    return roundData;
 }
 
 async function getSeriesFromIds(idList) {
@@ -56,4 +67,47 @@ async function getSeriesFromIds(idList) {
     return results;
 }
 
-module.exports = {getRandomEvent, getRandomRound, getSeriesFromIds};
+async function getSeasons() {
+    let db = await getConn();
+    let coll = db.collection("events");
+    let results = await coll.distinct("season");
+
+    return results;
+}
+
+async function getSplitsFromSeason(seasonVal) {
+    let db = await getConn();
+    let coll = db.collection("events");
+    const query = { season: { $eq: seasonVal }};
+    let results = await coll.distinct("split", query);
+
+    return results;
+}
+
+async function getEventsFromSplit(seasonVal, splitVal, regionVal) {
+    let db = await getConn();
+    let coll = db.collection("events");
+    const query = { season: { $eq: seasonVal }, split: { $eq: splitVal }, region: { $eq: regionVal }};
+    let results = await coll.distinct("name", query);
+
+    return results;
+}
+
+async function getTeamsFromEvent(seasonVal, splitVal, regionVal, eventVal) {
+    let db = await getConn();
+    let coll = db.collection("events");
+    const query = { 
+        season: { $eq: seasonVal }, 
+        split: { $eq: splitVal },
+        region: { $eq: regionVal },
+        name: { $eq: eventVal }
+    };
+    let results = await coll.findOne(query);
+
+    return Object.keys(results["teams"]);
+}
+
+module.exports = {
+    getRandomRound, getRoundByRegion, getSeriesFromIds, 
+    getSeasons, getSplitsFromSeason, getEventsFromSplit, getTeamsFromEvent
+};

@@ -47,41 +47,78 @@
             <form class="row">
                 <div class="col">
                     <label for="seasonSelect" class="form-label">Season</label>
-                    <select id="seasonSelect" class="form-select">
-                        <option>2024</option>
-                        <option>2025</option>
-                    </select>
+                    <select id="seasonSelect" class="form-select"></select>
                 </div>
                 <div class="col">
                     <label for="splitSelect" class="form-label">Split</label>
-                    <select id="splitSelect" class="form-select">
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                    </select>
+                    <select id="splitSelect" class="form-select" disabled></select>
                 </div>
                 <div class="col">
                     <label for="eventSelect" class="form-label">Event</label>
-                    <select id="eventSelect" class="form-select">
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                    </select>
+                    <select id="eventSelect" class="form-select" disabled></select>
                 </div>
                 <div class="col">
                     <label for="teamSelect" class="form-label">Team</label>
-                    <select id="teamSelect" class="form-select">
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                    </select>
+                    <select id="teamSelect" class="form-select" disabled></select>
                 </div>
             </form>
             <div class="row">
                 <ul id="guess-list" class="list-group"></ul>
             </div>
             <div class="row">
-                <button id="guess-button" type="button" class="btn btn-secondary">Guess</button>
+                <button id="guessButton" type="button" class="btn btn-secondary" disabled>Guess</button>
+            </div>
+        </div>
+
+        <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="modalHeader" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 id="modalHeader"></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body container">
+                        <p class="row justify-content-center" id="modalIntro"></p>
+                        <p class="row justify-content-center" id="modalEvent"></p>
+                        <h3 class="row justify-content-center" id="modalTeam"></h3>
+                        <img class="row justify-content-center" id="modalImage">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-info" data-bs-target="#newGameModal" data-bs-toggle="modal">Play Again</button>
+                        <button type="button" class="btn btn-secondary" id="shareButton">Share</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="newGameModal" aria-hidden="true" tabindex="-1" aria-labelledby="newModalHeader">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header" id="newModalHeader">
+                        <h1>New Game</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body container text-center">
+                        <div class="col">
+                            <label for="gameRegionSelect" class="form-label">Select Region:</label>
+                            <select class="form-select" id="gameRegionSelect">
+                                <option>LAN</option>
+                                <option>APAC</option>
+                                <option>EU</option>
+                                <option>MENA</option>
+                                <option>NA</option>
+                                <option>OCE</option>
+                                <option>SAM</option>
+                                <option>SSA</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+                        <button type="button" id="newGameButton" class="btn btn-primary" data-bs-dismiss="modal">Start New Game</button>
+                    </div>
+                </div>
             </div>
         </div>
 
