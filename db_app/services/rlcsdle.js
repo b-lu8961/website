@@ -45,10 +45,10 @@ async function getRoundByRegion(regionVal) {
     let eventList = await eventColl.aggregate(evQuery).toArray();
     let eventRes = eventList[0];
     
-    const teamName = Object.keys(eventRes["teams"])[Math.floor(Math.random() * 16)]
-    let team = eventRes["teams"][teamName];
+    const teamIdx = Math.floor(Math.random() * 16)
+    let team = eventRes["teams"][teamIdx];
     let eventData = [eventRes["season"], eventRes["split"], eventRes["region"], eventRes["name"]];
-    roundData.push([eventData, eventRes["url"], teamName, team])
+    roundData.push([eventData, eventRes["url"], team["name"], team])
 
     const srQuery = { bc: { $in: team["series"] }};
     let seriesColl = db.collection("series");
@@ -75,10 +75,10 @@ async function getSeasons() {
     return results;
 }
 
-async function getSplitsFromSeason(seasonVal) {
+async function getSplitsFromSeason(seasonVal, regionVal) {
     let db = await getConn();
     let coll = db.collection("events");
-    const query = { season: { $eq: seasonVal }};
+    const query = { season: { $eq: seasonVal }, region: { $eq: regionVal }};
     let results = await coll.distinct("split", query);
 
     return results;
@@ -104,7 +104,7 @@ async function getTeamsFromEvent(seasonVal, splitVal, regionVal, eventVal) {
     };
     let results = await coll.findOne(query);
 
-    return Object.keys(results["teams"]);
+    return results["teams"].map((team) => team["name"]);
 }
 
 module.exports = {

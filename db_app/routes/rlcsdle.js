@@ -41,9 +41,10 @@ router.get('/year', async (req, res) => {
     res.send(seasonList);
 })
 
-router.get('/season/:num', async (req, res) => {
+router.get('/season/:num/:region', async (req, res) => {
     checkCORS(req, res);
-    let splitList = await rlcsDB.getSplitsFromSeason(parseInt(req.params.num));
+    let regionParam = req.params.region === "NONE" ? "" : req.params.region;
+    let splitList = await rlcsDB.getSplitsFromSeason(parseInt(req.params.num), regionParam);
     res.send(splitList);
 });
 

@@ -12,6 +12,26 @@ const teamSelect = document.getElementById("teamSelect");
 
 const resultModal = document.getElementById("resultModal");
 
+function getRegionLabel(regionName) {
+    if (regionName === "LAN") {
+        return ""
+    } else if (regionName === "EU") {
+        return "Europe"
+    } else if (regionName === "NA") {
+        return "North America"
+    } else if (regionName === "OCE") {
+        return "Oceania"
+    } else if (regionName === "SAM") {
+        return "South America"
+    } else if (regionName === "MENA") {
+        return "Middle East & North Africa"
+    } else if (regionName === "APAC") {
+        return "Asia-Pacific"
+    } else {
+        return "Sub-Saharan Africa"
+    }
+}
+
 function setCharAt(str, idx, chr) {
     return str.substring(0, idx) + chr + str.substring(idx + 1);
 }
@@ -31,10 +51,20 @@ function setPlayerName(elem, playerName, playerNumber, guessNumber) {
         } else {
             elem.textContent = `Player ${playerNumber + 1}`;
         }
-    } else if (guessNumber === 4) {
+    } else if (guessNumber < 6) {
         elem.textContent = playerName[0] + '*';
     } else {
         elem.textContent = playerName;
+    }
+}
+
+function setCoachName(elem, coachName, guessNumber) {
+    if (guessNumber < 1) {
+        elem.textContent = "Coach";
+    } else if (guessNumber < 4) {
+        elem.textContent = coachName[0] + "*";
+    } else {
+        elem.textContent = coachName;
     }
 }
 
@@ -43,35 +73,70 @@ function populateScore(teamData, guessNumber) {
         teamData = JSON.parse(localStorage.getItem("teamData"));
     }
 
-    let playerNames = Object.keys(teamData["players"]);
-    playerNames = playerNames.sort((a, b) => teamData["players"][b]["score"] - teamData["players"][a]["score"]);
-    for (let i = 0; i < 3; i++) {
-        let playerData = teamData["players"][playerNames[i]];
-        const playerRow = document.getElementById(`player-${i + 1}`);
+    let playerData = teamData["players"]
+    playerData = playerData.sort((a, b) => a["score"] - b["score"]);
+    const scoreBody = document.getElementById("score-body");
+    for (let i = 0; i < playerData.length; i++) {
+        let currPlayer = playerData[i];
+        const playerRow = document.getElementById(`player-${i}`);
         playerRow.textContent = "";
         
         const nameElem = playerRow.appendChild(document.createElement("th"));
         nameElem.setAttribute("scope", "row");
-        setPlayerName(nameElem, playerNames[i], i, guessNumber);
+        setPlayerName(nameElem, currPlayer["name"], i, guessNumber);
+
+        const countryElem = playerRow.appendChild(document.createElement("td"));
+        countryElem.textContent = guessNumber < 5 ? "?" : currPlayer["country"];
 
         const scoreElem = playerRow.appendChild(document.createElement("td"));
-        scoreElem.textContent = playerData["score"];
+        scoreElem.textContent = currPlayer["score"];
         
         const goalElem = playerRow.appendChild(document.createElement("td"));
-        goalElem.textContent = playerData["goals"];
+        goalElem.textContent = currPlayer["goals"];
 
         const assistElem = playerRow.appendChild(document.createElement("td"));
-        assistElem.textContent = playerData["assists"];
+        assistElem.textContent = currPlayer["assists"];
 
         const saveElem = playerRow.appendChild(document.createElement("td"));
-        saveElem.textContent = playerData["saves"];
+        saveElem.textContent = currPlayer["saves"];
 
         const shotElem = playerRow.appendChild(document.createElement("td"));
-        shotElem.textContent = playerData["shots"];
+        shotElem.textContent = currPlayer["shots"];
 
         const demoElem = playerRow.appendChild(document.createElement("td"));
-        demoElem.textContent = playerData["demos"];
+        demoElem.textContent = currPlayer["demos"];
     }
+
+    for (let i = 0; i < teamData["coaches"].length; i++) {
+        let currCoach = teamData["coaches"][i];
+
+        const coachRow = document.getElementById(`coach-${i}`);
+        coachRow.textContent = "";
+
+        const nameElem = coachRow.appendChild(document.createElement("td"));
+        setCoachName(nameElem, currCoach["name"], guessNumber);
+
+        const countryElem = coachRow.appendChild(document.createElement("td"));
+        countryElem.textContent = guessNumber < 4 ? "?" : currCoach["country"];
+    }
+}
+
+function initScore(teamData) {
+    const scoreBody = document.getElementById("score-body");
+    scoreBody.textContent = "";
+    for (let i = 0; i < teamData["players"].length; i++) {
+        const playerElem = scoreBody.appendChild(document.createElement("tr"));
+        playerElem.setAttribute("id", `player-${i}`);
+    }
+
+    const scoreFooter = document.getElementById("score-foot");
+    scoreFooter.textContent = "";
+    for (let i = 0; i < teamData["coaches"].length; i++) {
+        const coachElem = scoreFooter.appendChild(document.createElement("tr"));
+        coachElem.setAttribute("id", `coach-${i}`);
+    }
+    
+    populateScore(teamData, 0);
 }
 
 function addGameValues(gameData, t1Row, t2Row, otRow) {
@@ -123,9 +188,9 @@ function getSeriesResult(series, guessTeam) {
 function getTeamName(teamName, guessTeam, guessNumber) {
     if (teamName === guessTeam) {
         if (guessNumber < 7) {
-            return "(<strong>&nbsp;?&nbsp;</strong>)";
+            return "&nbsp;<strong>???</strong>&nbsp;";
         } else {
-            return `(<strong>&nbsp;${teamName}&nbsp;</strong>)`;
+            return `&nbsp;<strong>${teamName}</strong>&nbsp;`;
         }
     } else {
         if (guessNumber === 0) {
@@ -323,7 +388,7 @@ function getRound(regionName="LAN") {
 
         resetGuesses();
         populateSeries(response[1], 0);
-        populateScore(response[0][3], 0);
+        initScore(response[0][3]);
     });
     
 }
@@ -387,10 +452,14 @@ seasonSelect.onchange = () => {
         return;
     }
     splitSelect.removeAttribute("disabled");
+    teamSelect.textContent = "";
+    guessButton.setAttribute("disabled", "");
 
-    let RLCS_URL = "http://localhost:3000/rlcsdle/season/";
-
-    fetch(RLCS_URL + String(seasonSelect.value), {
+    let SEASON_URL = "http://localhost:3000/rlcsdle/season/";
+    let eventInfo = JSON.parse(localStorage.getItem("eventID"));
+    let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];
+    let params = `${seasonSelect.value}/${region}`;
+    fetch(SEASON_URL + params, {
         method: "GET"
     })
     .then(response => {
@@ -413,6 +482,8 @@ splitSelect.onchange = () => {
         return;
     }
     eventSelect.removeAttribute("disabled");
+    teamSelect.textContent = "";
+    guessButton.setAttribute("disabled", "");
 
     let SPLIT_URL = "http://localhost:3000/rlcsdle/split/";
     let eventInfo = JSON.parse(localStorage.getItem("eventID"));
@@ -472,11 +543,13 @@ teamSelect.onchange = () => {
 
 fetchButton.onclick = () => {
     getRound();
+
+    guessButton.textContent = "Guess (1/6)";
 }
 
 newGameButton.onclick = () => {
     const newGameSelect = document.getElementById("gameRegionSelect");
-    getRound(newGameSelect.value);
+    getRound(getRegionLabel(newGameSelect.value));
 }
 
 guessButton.onclick = () => {
@@ -492,6 +565,8 @@ guessButton.onclick = () => {
         resultModal.show();
     } else if (guessNumber === 6) {
         // out of guesses
+        guessButton.textContent = `Guess (X/6)`;
+
         const modalElem = document.getElementById("resultModal")
         modalElem.setAttribute("data-bs-result", "fail");
         const resultModal = new bootstrap.Modal(modalElem);
@@ -500,6 +575,7 @@ guessButton.onclick = () => {
         populateSeries(null, guessNumber);
         populateScore(null, guessNumber);
 
+        guessButton.textContent = `Guess (${guessNumber + 1}/6)`;
         localStorage.setItem("guessNumber", String(guessNumber));
     }
 }
