@@ -1,6 +1,9 @@
 #!/usr/bin/node
 
 const express = require('express');
+const mongodb = require("mongodb");
+
+const config = require("./config");
 
 const app = express();
 const port = 3000;
@@ -17,6 +20,12 @@ app.use('/movies', movieRouter);
 
 app.use('/rlcsdle', rlcsdleRouter);
 
-app.listen(port, () => {
-    console.log(`Website DB app listening on ${port}`);
-});
+
+mongodb.MongoClient.connect(config.MONGO_CONN_STRING)
+    .catch(err => console.error(err))
+    .then(conn => {
+        app.locals.conn = conn;
+        app.listen(port, () => {
+            console.log(`Website DB app listening on ${port}`);
+        });
+    });

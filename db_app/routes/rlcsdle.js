@@ -15,52 +15,63 @@ function checkCORS(req, res) {
 router.get('/', async (req, res) => {
     checkCORS(req, res);
 
-    let roundData = await rlcsDB.getRandomRound();
+    const db = req.app.locals.conn.db("rlcs");
+    let roundData = await rlcsDB.getRandomRound(db);
     res.send(roundData);
 });
 
 router.get('/region/:name', async (req, res) => {
     checkCORS(req, res);
 
+    const db = req.app.locals.conn.db("rlcs");
     let regionParam = req.params.name === "LAN" ? "" : req.params.name;
-    let roundData = await rlcsDB.getRoundByRegion(regionParam);
+    let roundData = await rlcsDB.getRoundByRegion(db, regionParam);
     res.send(roundData);
 });
 
 router.get('/series/:ids', async (req, res) => {
     checkCORS(req, res);
 
+    const db = req.app.locals.conn.db("rlcs");
     let idList = req.params.ids.split("&");
-    let series = await rlcsDB.getSeriesFromIds(idList);
+    let series = await rlcsDB.getSeriesFromIds(db, idList);
     res.send(series);
 })
 
 router.get('/year', async (req, res) => {
     checkCORS(req, res);
-    let seasonList = await rlcsDB.getSeasons();
+
+    const db = req.app.locals.conn.db("rlcs");
+    let seasonList = await rlcsDB.getSeasons(db);
     res.send(seasonList);
 })
 
 router.get('/season/:num/:region', async (req, res) => {
     checkCORS(req, res);
+
+    const db = req.app.locals.conn.db("rlcs");
     let regionParam = req.params.region === "NONE" ? "" : req.params.region;
-    let splitList = await rlcsDB.getSplitsFromSeason(parseInt(req.params.num), regionParam);
+    let splitList = await rlcsDB.getSplitsFromSeason(db, parseInt(req.params.num), regionParam);
     res.send(splitList);
 });
 
 router.get('/split/:season/:split/:region', async (req, res) => {
     checkCORS(req, res);
+
+    const db = req.app.locals.conn.db("rlcs");
     let seasonParam = parseInt(req.params.season);
     let regionParam = req.params.region === "NONE" ? "" : req.params.region;
-    let eventList = await rlcsDB.getEventsFromSplit(seasonParam, req.params.split, regionParam);
+    let eventList = await rlcsDB.getEventsFromSplit(db, seasonParam, req.params.split, regionParam);
     res.send(eventList);
 });
 
 router.get('/event/:season/:split/:region/:name', async (req, res) => {
     checkCORS(req, res);
+
+    const db = req.app.locals.conn.db("rlcs");
     let seasonParam = parseInt(req.params.season);
     let regionParam = req.params.region === "NONE" ? "" : req.params.region;
-    let eventList = await rlcsDB.getTeamsFromEvent(seasonParam, req.params.split, regionParam, req.params.name);
+    let eventList = await rlcsDB.getTeamsFromEvent(db, seasonParam, req.params.split, regionParam, req.params.name);
     res.send(eventList);
 });
 
