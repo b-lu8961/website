@@ -1,6 +1,7 @@
 const bootstrap = window.bootstrap;
 
 const fetchButton = document.getElementById("test-button");
+const dailyButton = document.getElementById("dailyButton");
 const newGameButton = document.getElementById("newGameButton");
 const guessButton = document.getElementById("guessButton");
 const shareButton = document.getElementById("shareButton");
@@ -136,7 +137,7 @@ function initScore(teamData) {
         coachElem.setAttribute("id", `coach-${i}`);
     }
     
-    populateScore(teamData, 0);
+    populateScore(teamData, parseInt(localStorage.getItem("guessNumber")));
 }
 
 function addGameValues(gameData, t1Row, t2Row, otRow) {
@@ -337,18 +338,7 @@ function addSelectOptions(elem, options) {
     }
 }
 
-function resetGuesses() {
-    const guessList = document.getElementById("guess-list");
-    guessList.textContent = "";
-    
-    seasonSelect.textContent = "";
-    splitSelect.setAttribute("disabled", "");
-    splitSelect.textContent = "";
-    eventSelect.setAttribute("disabled", "");
-    eventSelect.textContent = "";
-    teamSelect.setAttribute("disabled", "");
-    teamSelect.textContent = "";
-    
+function setSeasonOptions() {
     let SEASON_URL = "http://localhost:3000/rlcsdle/year"
     fetch(SEASON_URL, {
         method: "GET"
@@ -363,6 +353,21 @@ function resetGuesses() {
     .then(response => {
         addSelectOptions(seasonSelect, response);
     });
+}
+
+function resetGuesses() {
+    const guessList = document.getElementById("guess-list");
+    guessList.textContent = "";
+    
+    seasonSelect.textContent = "";
+    splitSelect.setAttribute("disabled", "");
+    splitSelect.textContent = "";
+    eventSelect.setAttribute("disabled", "");
+    eventSelect.textContent = "";
+    teamSelect.setAttribute("disabled", "");
+    teamSelect.textContent = "";
+    
+    setSeasonOptions();
 }
 
 function getRound(regionName="LAN") {
@@ -380,6 +385,8 @@ function getRound(regionName="LAN") {
     })
     .then(response => {
         localStorage.setItem("guessNumber", "0");
+        localStorage.setItem("guessLog", "");
+        localStorage.setItem("guessResults", "");
         localStorage.setItem("eventID", JSON.stringify(response[0][0]));
         localStorage.setItem("eventURL", response[0][1]);
         localStorage.setItem("teamName", response[0][2]);
@@ -393,18 +400,47 @@ function getRound(regionName="LAN") {
     
 }
 
-function addGuessSection(elem, select, answer) {
+function addGuessSection(elem, guess, answer) {
     elem.setAttribute("class", "col");
-    if (select.value === answer) {
-        elem.textContent = select.value + " ✅";
+    if (guess === answer) {
+        elem.textContent = guess + " ✅";
         return true;
     } else {
-        elem.textContent = select.value + " ❌";
+        elem.textContent = guess + " ❌";
         return false;
     }
 }
 
-function checkGuess() {
+function restoreGuesses() {
+    resetGuesses();
+    if (localStorage.getItem("guessLog")) {
+        let guessLog = JSON.parse(localStorage.getItem("guessLog"));
+
+        for (guess of guessLog) {
+            checkGuess(guess, storeFlag=false);
+        }
+    }
+}
+
+function storeGuess(guessResult, guessValue) {
+    if (localStorage.getItem("guessNumber") === "0") {
+        let guessResults = [guessResult];
+        localStorage.setItem("guessResults", JSON.stringify(guessResults));
+
+        let guessLog = [guessValue];
+        localStorage.setItem("guessLog", JSON.stringify(guessLog));
+    } else {
+        let guessResults = JSON.parse(localStorage.getItem("guessResults"));
+        guessResults.push(guessResult);
+        localStorage.setItem("guessResults", JSON.stringify(guessResults));
+
+        let guessLog = JSON.parse(localStorage.getItem("guessLog"));
+        guessLog.push(guessValue);
+        localStorage.setItem("guessLog", JSON.stringify(guessLog));
+    }
+}
+
+function checkGuess(guessValues, storeFlag=true) {
     let eventInfo = JSON.parse(localStorage.getItem("eventID"));
     let teamName = localStorage.getItem("teamName");
 
@@ -413,31 +449,23 @@ function checkGuess() {
     const guessTemplate = templateBase.content.cloneNode(true);
     const guessElem = guessTemplate.querySelector(".row");
     
-    const seasonSelect = document.getElementById("seasonSelect");
     const seasonBox = guessElem.appendChild(document.createElement("div"));
-    let hasSeason = addGuessSection(seasonBox, seasonSelect, String(eventInfo[0]));
+    let hasSeason = addGuessSection(seasonBox, guessValues[0], String(eventInfo[0]));
     
-    const splitSelect = document.getElementById("splitSelect");
     const splitBox = guessElem.appendChild(document.createElement("div"));
-    let hasSplit = addGuessSection(splitBox, splitSelect, eventInfo[1]);
+    let hasSplit = addGuessSection(splitBox, guessValues[1], eventInfo[1]);
 
-    const eventSelect = document.getElementById("eventSelect");
     const eventBox = guessElem.appendChild(document.createElement("div"));
-    let hasEvent = addGuessSection(eventBox, eventSelect, eventInfo[3]);
+    let hasEvent = addGuessSection(eventBox, guessValues[2], eventInfo[3]);
 
-    const teamSelect = document.getElementById("teamSelect");
     const teamBox = guessElem.appendChild(document.createElement("div"));
-    let hasTeam = addGuessSection(teamBox, teamSelect, teamName);
+    let hasTeam = addGuessSection(teamBox, guessValues[3], teamName);
 
     guessList.appendChild(guessTemplate);
-    let guessResult = [hasSeason, hasSplit, hasEvent, hasTeam];
-    if (localStorage.getItem("guessNumber") === "0") {
-        let guessLog = [guessResult];
-        localStorage.setItem("guessLog", JSON.stringify(guessLog));
-    } else {
-        let guessLog = JSON.parse(localStorage.getItem("guessLog"));
-        guessLog.push(guessResult);
-        localStorage.setItem("guessLog", JSON.stringify(guessLog));
+
+    if (storeFlag) {
+        let guessResult = [hasSeason, hasSplit, hasEvent, hasTeam];
+        storeGuess(guessResult, guessValues);
     }
 
     return hasSeason && hasSplit && hasEvent && hasTeam;
@@ -555,9 +583,12 @@ newGameButton.onclick = () => {
 guessButton.onclick = () => {
     let guessNumber = parseInt(localStorage.getItem("guessNumber")) + 1;
     guessButton.setAttribute("disabled", "");
-    if (checkGuess()) {
+
+    let guessValues = [seasonSelect.value, splitSelect.value, eventSelect.value, teamSelect.value];
+    if (checkGuess(guessValues)) {
         populateSeries(null, 10);
         populateScore(null, 10);
+        localStorage.setItem("guessNumber", "10");
 
         const modalElem = document.getElementById("resultModal")
         modalElem.setAttribute("data-bs-result", "success");
@@ -609,7 +640,7 @@ resultModal.addEventListener("show.bs.modal", event => {
 });
 
 shareButton.onclick = () => {
-    const guessLog = JSON.parse(localStorage.getItem("guessLog"));
+    const guessLog = JSON.parse(localStorage.getItem("guessResults"));
     let copyText = "RLCSdle "
     let guessText = "";
     for (let i = 0; i < guessLog.length; i++) {
@@ -636,4 +667,26 @@ shareButton.onclick = () => {
 
     navigator.clipboard.writeText(copyText + guessText);
     alert("Result copied to clipboard.");
-}
+};
+
+dailyButton.onclick = () => {
+    getRound();
+    guessButton.textContent = "Guess (1/6)";
+};
+
+window.onload = (event) => {
+    if (!localStorage.getItem("visitDate")) {
+        let currDate = new Date();
+        localStorage.setItem("visitDate", currDate.toDateString());
+
+        const modalElem = document.getElementById("welcomeModal")
+        const welcomeModal = new bootstrap.Modal(modalElem);
+        welcomeModal.show();
+    } else {
+        let guessNumber = parseInt(localStorage.getItem("guessNumber"));
+        
+        initScore(JSON.parse(localStorage.getItem("teamData")));
+        populateSeries(JSON.parse(localStorage.getItem("seriesData")), guessNumber);
+        restoreGuesses();
+    }
+};
