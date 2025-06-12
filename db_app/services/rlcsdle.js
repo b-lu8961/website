@@ -3,7 +3,6 @@ async function getRandomRound(db) {
     let seasonVal = Math.random() > 0.5 ? 2025 : 2024;
     const evQuery = { season: { $eq: seasonVal }};
 
-    //let db = await getConn();
     let eventColl = db.collection("events");
     let eventRes = await eventColl.findOne(evQuery);
     
@@ -24,7 +23,6 @@ async function getRoundByRegion(db, regionVal) {
     let roundData = []
     const evQuery = [{ $match: { region: regionVal } }, { $sample: { size: 1 } }];
 
-    //let db = await getConn();
     let eventColl = db.collection("events");
     let eventList = await eventColl.aggregate(evQuery).toArray();
     let eventRes = eventList[0];
@@ -42,8 +40,53 @@ async function getRoundByRegion(db, regionVal) {
     return roundData;
 }
 
+function hasAnswer(prevData, currRound) {
+    for (prev of prevData) {
+        let prevRound = prev["roundData"][0];
+        if (prevRound[0] === currRound[0] && prevRound[1] === currRound[1] &&
+            prevRound[2] === currRound[2] && prevRound[3] === currRound[3]
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+async function getDailyRound(conn) {
+    const currDate = new Date();
+
+    const daily = conn.db("meta").collection("daily");
+    
+    let dailyRes = await daily.findOne({ date: { $eq: currDate.toDateString() } });
+    console.log(dailyRes);
+    if (dailyRes !== null) {
+        const dailyData = dailyRes["roundData"].concat(dailyRes["number"]);
+        return dailyData;
+    } else {
+        const prevData = await daily.find().sort({ number: -1 }).limit(30).toArray();
+        console.log(prevData[0]);
+        const roundObj = {
+            date: currDate.toDateString(),
+            number: prevData[0]["number"] + 1, 
+            stats: [0, 0, 0, 0, 0, 0, 0]
+        };
+
+        const rlcs = conn.db("rlcs")
+        let randomData = await getRoundByRegion(rlcs, "");
+        while (!hasAnswer(prevData, randomData[0])) {
+            randomData = await getRoundByRegion(rlcs, "");
+        }
+
+        roundObj["roundData"] = randomData;
+
+        let insertRes = await daily.insertOne(roundObj);
+        randomData.push(prevData[0]["number"] + 1);
+        return randomData;
+    }
+
+}
+
 async function getSeriesFromIds(db, idList) {
-    //let db = await getConn();
     let coll = db.collection("series");
     const query = { bc: { $in: idList }};
     let results = await coll.find(query).toArray();
@@ -52,7 +95,6 @@ async function getSeriesFromIds(db, idList) {
 }
 
 async function getSeasons(db) {
-    //let db = await getConn();
     let coll = db.collection("events");
     let results = await coll.distinct("season");
 
@@ -60,7 +102,6 @@ async function getSeasons(db) {
 }
 
 async function getSplitsFromSeason(db, seasonVal, regionVal) {
-    //let db = await getConn();
     let coll = db.collection("events");
     const query = { season: { $eq: seasonVal }, region: { $eq: regionVal }};
     let results = await coll.distinct("split", query);
@@ -69,7 +110,6 @@ async function getSplitsFromSeason(db, seasonVal, regionVal) {
 }
 
 async function getEventsFromSplit(db, seasonVal, splitVal, regionVal) {
-    //let db = await getConn();
     let coll = db.collection("events");
     const query = { season: { $eq: seasonVal }, split: { $eq: splitVal }, region: { $eq: regionVal }};
     let results = await coll.distinct("name", query);
@@ -78,7 +118,6 @@ async function getEventsFromSplit(db, seasonVal, splitVal, regionVal) {
 }
 
 async function getTeamsFromEvent(db, seasonVal, splitVal, regionVal, eventVal) {
-    //let db = await getConn();
     let coll = db.collection("events");
     const query = { 
         season: { $eq: seasonVal }, 
@@ -92,6 +131,6 @@ async function getTeamsFromEvent(db, seasonVal, splitVal, regionVal, eventVal) {
 }
 
 module.exports = {
-    getRandomRound, getRoundByRegion, getSeriesFromIds, 
+    getRandomRound, getRoundByRegion, getDailyRound, getSeriesFromIds, 
     getSeasons, getSplitsFromSeason, getEventsFromSplit, getTeamsFromEvent
 };

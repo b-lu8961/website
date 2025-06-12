@@ -20,6 +20,14 @@ router.get('/', async (req, res) => {
     res.send(roundData);
 });
 
+router.get('/daily', async (req, res) => {
+    checkCORS(req, res);
+
+    const conn = req.app.locals.conn;
+    let roundData = await rlcsDB.getDailyRound(conn);
+    res.send(roundData);
+});
+
 router.get('/region/:name', async (req, res) => {
     checkCORS(req, res);
 

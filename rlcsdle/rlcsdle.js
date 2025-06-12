@@ -400,6 +400,25 @@ function getRound(regionName="LAN") {
     
 }
 
+function getDaily() {
+    let DAILY_URL = "http://localhost:3000/rlcsdle/daily"
+
+    fetch(DAILY_URL, {
+        method: "GET"
+    })
+    .then(response => {
+        if (!response.ok) {
+            return [];
+        }
+        
+        return response.json();
+    })
+    .then(response => {
+        console.log("daily");
+        console.log(response);
+    })
+}
+
 function addGuessSection(elem, guess, answer) {
     elem.setAttribute("class", "col");
     if (guess === answer) {
@@ -670,7 +689,7 @@ shareButton.onclick = () => {
 };
 
 dailyButton.onclick = () => {
-    getRound();
+    getDaily();
     guessButton.textContent = "Guess (1/6)";
 };
 
