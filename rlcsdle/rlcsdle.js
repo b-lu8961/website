@@ -370,6 +370,21 @@ function resetGuesses() {
     setSeasonOptions();
 }
 
+function initPage(response) {
+    localStorage.setItem("guessNumber", "0");
+    localStorage.setItem("guessLog", "");
+    localStorage.setItem("guessResults", "");
+    localStorage.setItem("eventID", JSON.stringify(response[0][0]));
+    localStorage.setItem("eventURL", response[0][1]);
+    localStorage.setItem("teamName", response[0][2]);
+    localStorage.setItem("teamData", JSON.stringify(response[0][3]));
+    localStorage.setItem("seriesData", JSON.stringify(response[1]));
+
+    resetGuesses();
+    populateSeries(response[1], 0);
+    initScore(response[0][3]);
+}
+
 function getRound(regionName="LAN") {
     let RLCS_URL = `http://localhost:3000/rlcsdle/region/${regionName}`;
 
@@ -384,18 +399,7 @@ function getRound(regionName="LAN") {
         return response.json();
     })
     .then(response => {
-        localStorage.setItem("guessNumber", "0");
-        localStorage.setItem("guessLog", "");
-        localStorage.setItem("guessResults", "");
-        localStorage.setItem("eventID", JSON.stringify(response[0][0]));
-        localStorage.setItem("eventURL", response[0][1]);
-        localStorage.setItem("teamName", response[0][2]);
-        localStorage.setItem("teamData", JSON.stringify(response[0][3]));
-        localStorage.setItem("seriesData", JSON.stringify(response[1]));
-
-        resetGuesses();
-        populateSeries(response[1], 0);
-        initScore(response[0][3]);
+        initPage(response);
     });
     
 }
@@ -414,8 +418,7 @@ function getDaily() {
         return response.json();
     })
     .then(response => {
-        console.log("daily");
-        console.log(response);
+        initPage(response);
     })
 }
 
