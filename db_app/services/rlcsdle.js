@@ -43,8 +43,9 @@ async function getRoundByRegion(db, regionVal) {
 function hasAnswer(prevData, currRound) {
     for (prev of prevData) {
         let prevRound = prev["roundData"][0];
-        if (prevRound[0] === currRound[0] && prevRound[1] === currRound[1] &&
-            prevRound[2] === currRound[2] && prevRound[3] === currRound[3]
+        if (prevRound[0][0] === currRound[0][0] && prevRound[0][1] === currRound[0][1] &&
+            prevRound[0][2] === currRound[0][2] && prevRound[0][3] === currRound[0][3] &&
+            prevRound[2] === currRound[2]
         ) {
             return true;
         }
@@ -54,17 +55,16 @@ function hasAnswer(prevData, currRound) {
 
 async function getDailyRound(conn) {
     const currDate = new Date();
-
+    
     const daily = conn.db("meta").collection("daily");
     
     let dailyRes = await daily.findOne({ date: { $eq: currDate.toDateString() } });
-    console.log(dailyRes);
     if (dailyRes !== null) {
         const dailyData = dailyRes["roundData"].concat(dailyRes["number"]);
         return dailyData;
     } else {
         const prevData = await daily.find().sort({ number: -1 }).limit(30).toArray();
-        console.log(prevData[0]);
+        //console.log(prevData[0]);
         const roundObj = {
             date: currDate.toDateString(),
             number: prevData[0]["number"] + 1, 
@@ -73,13 +73,12 @@ async function getDailyRound(conn) {
 
         const rlcs = conn.db("rlcs")
         let randomData = await getRoundByRegion(rlcs, "");
-        while (!hasAnswer(prevData, randomData[0])) {
+        while (hasAnswer(prevData, randomData[0])) {
             randomData = await getRoundByRegion(rlcs, "");
         }
-
         roundObj["roundData"] = randomData;
-
         let insertRes = await daily.insertOne(roundObj);
+
         randomData.push(prevData[0]["number"] + 1);
         return randomData;
     }
