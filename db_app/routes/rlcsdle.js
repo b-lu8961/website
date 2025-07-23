@@ -22,7 +22,6 @@ router.get('/', async (req, res) => {
 
 router.get('/daily', async (req, res) => {
     checkCORS(req, res);
-
     const conn = req.app.locals.conn;
     let roundData = await rlcsDB.getDailyRound(conn);
     res.send(roundData);
@@ -83,9 +82,12 @@ router.get('/event/:season/:split/:region/:name', async (req, res) => {
     res.send(eventList);
 });
 
-router.get('/region/:region', async (req, res) => {
-    
+router.post('/daily', async (req, res) => {
+    checkCORS(req, res);
+    const conn = req.app.locals.conn;
+    let indexParam = parseInt(req.body["num"]);
+    let dailyStats = await rlcsDB.addDailyResult(conn, indexParam);
+    res.send(dailyStats);
 });
-
 
 module.exports = router;

@@ -12,6 +12,8 @@ const port = 3000;
 const movieRouter = require('./routes/movies');
 const rlcsdleRouter = require('./routes/rlcsdle');
 
+app.use(express.text());
+
 app.get('/', (req, res) => {
     res.send("Hello world!!!");
 });

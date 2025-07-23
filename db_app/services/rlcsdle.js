@@ -85,6 +85,18 @@ async function getDailyRound(conn) {
 
 }
 
+async function addDailyResult(conn, index) {
+    console.log("add");
+    const currDate = new Date();
+    const daily = conn.db("meta").collection("daily");
+
+    const updateKey = `stats.${index}`;
+    await daily.updateOne({ date: currDate.toDateString() }, { $inc: { [updateKey]: 1 } });
+
+    let dailyRes = await daily.findOne({ date: { $eq: currDate.toDateString() } });
+    return dailyRes["stats"];
+}
+
 async function getSeriesFromIds(db, idList) {
     let coll = db.collection("series");
     const query = { bc: { $in: idList }};
@@ -130,6 +142,7 @@ async function getTeamsFromEvent(db, seasonVal, splitVal, regionVal, eventVal) {
 }
 
 module.exports = {
-    getRandomRound, getRoundByRegion, getDailyRound, getSeriesFromIds, 
+    getDailyRound, addDailyResult,
+    getRandomRound, getRoundByRegion, getSeriesFromIds, 
     getSeasons, getSplitsFromSeason, getEventsFromSplit, getTeamsFromEvent
 };

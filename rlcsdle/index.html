@@ -18,101 +18,47 @@
                 <div class="col">
                     <h1 href="/" class="display-4"><a class="link-dark link-underline link-underline-opacity-0" href="/">RLCS◌dle</a></h1>
                     <hr class="mt-0 border-3">
-                    <button type="button" class="btn btn-primary" id="test-button">Fetch</button>
                 </div>
             </div>
-            <div class="row">
-                <div class="accordion" id="series-accordion"></div>
-            </div>
-            <div class="row">
-                <table class="table" id="score-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">🗺️</th>
-                            <th scope="col">Score</th>
-                            <th scope="col">Goals</th>
-                            <th scope="col">Assists</th>
-                            <th scope="col">Saves</th>
-                            <th scope="col">Shots</th>
-                            <th scope="col">Demos</th>
-                        </tr>
-                    </thead>
-                    <tbody id="score-body"></tbody>
-                    <tfoot id="score-foot">
-                    </tfoot>
-                </table>
-            </div>
-            <form class="row">
-                <div class="col">
-                    <label for="seasonSelect" class="form-label">Season</label>
-                    <select id="seasonSelect" class="form-select"></select>
-                </div>
-                <div class="col">
-                    <label for="splitSelect" class="form-label">Split</label>
-                    <select id="splitSelect" class="form-select" disabled></select>
-                </div>
-                <div class="col">
-                    <label for="eventSelect" class="form-label">Event</label>
-                    <select id="eventSelect" class="form-select" disabled></select>
-                </div>
-                <div class="col">
-                    <label for="teamSelect" class="form-label">Team</label>
-                    <select id="teamSelect" class="form-select" disabled></select>
-                </div>
-            </form>
-            <div class="row">
-                <ul id="guess-list" class="list-group"></ul>
-            </div>
-            <div class="row">
-                <button id="guessButton" type="button" class="btn btn-secondary" disabled>Guess</button>
+            <div class="row gap-2">
+                <h2>Welcome to RLCSdle!</h2>
+                <p>An RL Esports game where you guess the team & event from statistics and other info.</p>
+                <div><button type="button" class="btn btn-primary" id="dailyButton">Daily</button></div>
+                <div><button type="button" class="btn btn-primary" id="randomButton">Random</button></div>
+                <div><button type="button" class="btn btn-primary" id="helpButton">How to Play</button></div>
             </div>
         </div>
 
-        <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="modalHeader" aria-hidden="true">
+        <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpHeader" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h1 id="modalHeader"></h1>
+                        <h1 id="helpHeader">How to Play</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body container">
-                        <p class="row justify-content-center" id="modalIntro"></p>
-                        <p class="row justify-content-center" id="modalEvent"></p>
-                        <h3 class="row justify-content-center" id="modalTeam"></h3>
-                        <img class="row justify-content-center" id="modalImage">
+                        <p>Select a season, event, and team from the dropdowns that matches the information given.</p>
+                        <p>Information is revealed as follows:</p>
+                        <ol>
+                            <li>Series results, game scores, player scoreboard stats</li>
+                            <li>Event stage names, series casters, first letter of opposing teams, first letter of coach</li>
+                            <li>Length of opposing team names, first letter of mystery team's lowest scoring player (by total points)</li>
+                            <li>Full opposing team names, first letter of mystery team's middle scoring player</li>
+                            <li>First letter of highest scoring player, dates of series, coach's country</li>
+                            <li>Full coach name, players' countries</li>
+                        </ol>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-info" data-bs-target="#newGameModal" data-bs-toggle="modal">Play Again</button>
-                        <button type="button" class="btn btn-secondary" id="shareButton">Share</button>
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal" aria-label="Close">Close</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="modal fade" id="welcomeModal" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" tabindex="-1" aria-labelledby="welcomeHeader">
+        <div class="modal fade" id="randomModal" aria-hidden="true" tabindex="-1" aria-labelledby="randomHeader">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h1 id="welcomeHeader">Welcome to RLCSdle!</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-info" data-bs-target="#newGameModal" data-bs-toggle="modal">Play Random</button>
-                        <button type="button" class="btn btn-secondary" id="dailyButton" data-bs-dismiss="modal">Play Daily</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="newGameModal" aria-hidden="true" tabindex="-1" aria-labelledby="newModalHeader">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header" id="newModalHeader">
+                    <div class="modal-header" id="randomHeader">
                         <h1>New Game</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -138,34 +84,6 @@
                 </div>
             </div>
         </div>
-
-        <template id="seriesTemplate">
-            <div class="accordion-item">
-                <h3 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" aria-expanded="false"></button>
-                </h3>
-                <div class="accordion-collapse collapse" data-bs-parent="#series-accordion">
-                    <div class="accordion-body container">
-                        <div class="row">
-                            <table class="table table-sm">
-                                <thead></thead>
-                                <tbody></tbody>
-                                <tfoot class="table-group-divider"></tfoot>
-                            </table>
-                        </div>
-                        <div class="row justify-content-center">
-                            <p></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </template>
-
-        <template id="guessTemplate">
-            <li class="list-group-item">
-                <div class="row"></div>
-            </li>
-        </template>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
