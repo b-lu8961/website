@@ -85,7 +85,7 @@ router.get('/event/:season/:split/:region/:name', async (req, res) => {
 router.post('/daily', async (req, res) => {
     checkCORS(req, res);
     const conn = req.app.locals.conn;
-    let indexParam = parseInt(req.body["num"]);
+    let indexParam = parseInt(req.body);
     let dailyStats = await rlcsDB.addDailyResult(conn, indexParam);
     res.send(dailyStats);
 });

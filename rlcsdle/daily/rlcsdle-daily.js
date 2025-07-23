@@ -1,7 +1,6 @@
 const bootstrap = window.bootstrap;
 const d3 = window.d3;
 
-const fetchButton = document.getElementById("test-button");
 const newGameButton = document.getElementById("newGameButton");
 const guessButton = document.getElementById("guessButton");
 const shareButton = document.getElementById("shareButton");
@@ -477,11 +476,81 @@ function checkGuess(guessValues, storeFlag=true) {
     return hasSeason && hasSplit && hasEvent && hasTeam;
 }
 
+function drawDailyResults(index, rawValues) {
+    let data = [];
+    for (let i = 0; i < 7; i++) {
+        let key = i === 6 ? "X" : `${i + 1}`;
+        let currData = { label: key, value: rawValues[i]};
+        if (i === index) {
+            currData["current"] = true;
+        }
+        data.push(currData);
+    }
+
+    const histContainer = document.getElementById("barContainer");
+    histContainer.textContent = "";
+
+    const width = 200;
+    const height = 100;
+    const margin = 10;
+
+    const x = d3.scaleBand()
+        .domain(data.map((d) => d.label))
+        .range([margin, width - margin])
+        .padding(0.1);
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(data, (d) => d.value)])
+        .range([height - (2 * margin), 2 * margin]);
+
+    const svg = d3.create("svg")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .attr("viewBox", [0, 0, width, height])
+        .attr("preserveAspectRatio", "xMinYMid meet");
+    
+    svg.append("g").selectAll()
+    .data(data)
+    .join("rect")
+        .attr("fill", function (d) {
+            if ("current" in d) {
+                return "green";
+            } else {
+                return "steelblue"
+            }
+        })
+        .attr("x", (d) => x(d.label))
+        .attr("y", (d) => y(d.value))
+        .attr("height", (d) => y(0) - y(d.value))
+        .attr("width", x.bandwidth());
+
+    svg.selectAll("text.bar")
+        .data(data)
+    .enter().append("text")
+        .attr("class", "bar")
+        .attr("text-anchor", "middle")
+        .attr("x", (d) => x(d.label) + (x.bandwidth() / 2))
+        .attr("y", (d) => y(d.value) - 5)
+        .text((d) =>  d.value)
+        .style("font-size", "0.5em");
+
+    svg.append("g")
+        .attr("transform", `translate(0,${height - (2 * margin)})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0))
+        .call((g) => g.append("text")
+            .attr("x", width / 2)
+            .attr("y", margin + 8)
+            .attr("text-anchor", "middle")
+            .attr("fill", "currentColor")
+    );
+
+    histContainer.append(svg.node());
+}
+
 function postDailyScore(index) {
     let POST_URL = `http://localhost:3000/rlcsdle/daily`
     fetch(POST_URL, {
         method: "POST",
-        body: toString(index)
+        body: index.toString()
     })
     .then(response => {
         if (!response.ok) {
@@ -491,7 +560,7 @@ function postDailyScore(index) {
         return response.json();
     })
     .then(response => {
-        console.log(response);
+        drawDailyResults(index, response);
     });
 }
 
@@ -593,12 +662,6 @@ teamSelect.onchange = () => {
     }
 };
 
-fetchButton.onclick = () => {
-    getRound();
-
-    guessButton.textContent = "Guess (1/6)";
-}
-
 newGameButton.onclick = () => {
     const newGameSelect = document.getElementById("gameRegionSelect");
     getRound(getRegionLabel(newGameSelect.value));
@@ -653,11 +716,11 @@ resultModal.addEventListener("show.bs.modal", event => {
         modalIntro.textContent = "You got it! The answer was:";
     } else {
         modalHeader.textContent = "Sorry!";
-        modalHeader.textContent = "Better luck next time! The answer was:";
+        modalIntro.textContent = "Better luck next time! The answer was:";
     }
 
     let eventID = JSON.parse(localStorage.getItem("eventID"));
-    modalEvent.textContent = eventID.join(", ");
+    modalEvent.textContent = eventID.join(", ").replace(" ,", "");
 
     let teamName = localStorage.getItem("teamName")
     modalTeam.textContent = teamName;
@@ -670,7 +733,7 @@ resultModal.addEventListener("show.bs.modal", event => {
 
 shareButton.onclick = () => {
     const guessLog = JSON.parse(localStorage.getItem("guessResults"));
-    let copyText = "RLCSdle "
+    let copyText = `RLCSdle #${localStorage.getItem("dailyNum")} `;
     let guessText = "";
     for (let i = 0; i < guessLog.length; i++) {
         let guess = guessLog[i];
@@ -703,6 +766,7 @@ window.onload = (event) => {
     let currDate = new Date();
     if (localStorage.getItem("daily") === currDate.toDateString()) {
         guessNumber = 10;
+        localStorage.setItem("guessNumber", 10);
         guessButton.setAttribute("disabled", "");
     }
 

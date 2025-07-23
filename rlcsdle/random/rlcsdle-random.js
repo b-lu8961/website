@@ -1,6 +1,5 @@
 const bootstrap = window.bootstrap;
 
-const fetchButton = document.getElementById("test-button");
 const newGameButton = document.getElementById("newGameButton");
 const guessButton = document.getElementById("guessButton");
 
@@ -570,12 +569,6 @@ teamSelect.onchange = () => {
     }
 };
 
-fetchButton.onclick = () => {
-    getRound();
-
-    guessButton.textContent = "Guess (1/6)";
-}
-
 newGameButton.onclick = () => {
     const newGameSelect = document.getElementById("gameRegionSelect");
     getRound(getRegionLabel(newGameSelect.value));
@@ -625,11 +618,11 @@ resultModal.addEventListener("show.bs.modal", event => {
         modalIntro.textContent = "You got it! The answer was:";
     } else {
         modalHeader.textContent = "Sorry!";
-        modalHeader.textContent = "Better luck next time! The answer was:";
+        modalIntro.textContent = "Better luck next time! The answer was:";
     }
 
     let eventID = JSON.parse(localStorage.getItem("eventID"));
-    modalEvent.textContent = eventID.join(", ");
+    modalEvent.textContent = eventID.join(", ").replace(" ,", "");
 
     let teamName = localStorage.getItem("teamName")
     modalTeam.textContent = teamName;

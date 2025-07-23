@@ -64,7 +64,6 @@ async function getDailyRound(conn) {
         return dailyData;
     } else {
         const prevData = await daily.find().sort({ number: -1 }).limit(30).toArray();
-        //console.log(prevData[0]);
         const roundObj = {
             date: currDate.toDateString(),
             number: prevData[0]["number"] + 1, 
@@ -86,7 +85,6 @@ async function getDailyRound(conn) {
 }
 
 async function addDailyResult(conn, index) {
-    console.log("add");
     const currDate = new Date();
     const daily = conn.db("meta").collection("daily");
 

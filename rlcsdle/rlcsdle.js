@@ -43,6 +43,7 @@ function getDaily() {
     })
     .then(response => {
         initRound(response);
+        localStorage.setItem("dailyNum", response[2].toString());
     })
     .finally(() => {
         window.location.href = "/rlcsdle/daily/";
@@ -82,7 +83,12 @@ function initRound(response) {
 }
 
 dailyButton.onclick = () => {
-    getDaily();
+    let currDate = new Date();
+    if (localStorage.getItem("daily") === currDate.toDateString()) {
+        window.location.href = "/rlcsdle/daily/";
+    } else {
+        getDaily();
+    }
 }
 
 newGameButton.onclick = () => {
