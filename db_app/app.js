@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 
 app.use('/movies', movieRouter);
 
-app.use('/rlcsdle', rlcsdleRouter);
+app.use('/rlcsdle/v1', rlcsdleRouter);
 
 
 mongodb.MongoClient.connect(config.MONGO_CONN_STRING)

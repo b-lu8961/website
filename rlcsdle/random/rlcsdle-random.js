@@ -336,7 +336,7 @@ function addSelectOptions(elem, options) {
 }
 
 function setSeasonOptions() {
-    let SEASON_URL = "year";
+    let SEASON_URL = "v1/year";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
         SEASON_URL = "http://localhost:3000/rlcsdle/" + SEASON_URL
     }
@@ -386,7 +386,7 @@ function initRound(response) {
 }
 
 function getRound(regionName="LAN") {
-    let RLCS_URL = `region/${regionName}`;
+    let RLCS_URL = `v1/region/${regionName}`;
     if (document.documentURI.startsWith("http://localhost:8000/")) {
         RLCS_URL = "http://localhost:3000/rlcsdle/" + RLCS_URL
     }
@@ -489,7 +489,7 @@ seasonSelect.onchange = () => {
     teamSelect.textContent = "";
     guessButton.setAttribute("disabled", "");
 
-    let SEASON_URL = "season/";
+    let SEASON_URL = "v1/season/";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
         SEASON_URL = "http://localhost:3000/rlcsdle/" + SEASON_URL;
     }
@@ -522,7 +522,7 @@ splitSelect.onchange = () => {
     teamSelect.textContent = "";
     guessButton.setAttribute("disabled", "");
 
-    let SPLIT_URL = "split/";
+    let SPLIT_URL = "v1/split/";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
         SPLIT_URL = "http://localhost:3000/rlcsdle/" + SPLIT_URL;
     }
@@ -552,7 +552,7 @@ eventSelect.onchange = () => {
     }
     teamSelect.removeAttribute("disabled");
 
-    let EVENT_URL = "event/";
+    let EVENT_URL = "v1/event/";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
         EVENT_URL = "http://localhost:3000/rlcsdle/" + EVENT_URL;
     }

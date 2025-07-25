@@ -29,7 +29,7 @@ function getRegionLabel(regionName) {
 }
 
 function getDaily() {
-    let DAILY_URL = "daily";
+    let DAILY_URL = "v1/daily";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
         DAILY_URL = "http://localhost:3000/rlcsdle/" + DAILY_URL
     }
@@ -54,7 +54,7 @@ function getDaily() {
 }
 
 function getRound(regionName="LAN") {
-    let RLCS_URL = `region/${regionName}`;
+    let RLCS_URL = `v1/region/${regionName}`;
     if (document.documentURI.startsWith("http://localhost:8000/")) {
         RLCS_URL = "http://localhost:3000/rlcsdle/" + RLCS_URL
     }
