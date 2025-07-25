@@ -338,9 +338,9 @@ function addSelectOptions(elem, options) {
 }
 
 function setSeasonOptions() {
-    let SEASON_URL = "rlcsdle/year";
+    let SEASON_URL = "year";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
-        SEASON_URL = "http://localhost:3000/" + SEASON_URL;
+        SEASON_URL = "http://localhost:3000/rlcsdle/" + SEASON_URL;
     }
     fetch(SEASON_URL, {
         method: "GET"
@@ -388,9 +388,9 @@ function initRound(response) {
 }
 
 function getRound(regionName="LAN") {
-    let RLCS_URL = `rlcsdle/region/${regionName}`;
+    let RLCS_URL = `region/${regionName}`;
     if (document.documentURI.startsWith("http://localhost:8000/")) {
-        RLCS_URL = "http://localhost:3000/" + RLCS_URL;
+        RLCS_URL = "http://localhost:3000/rlcsdle/" + RLCS_URL;
     }
 
     fetch(RLCS_URL, {
@@ -553,9 +553,9 @@ function drawDailyResults(index, rawValues) {
 }
 
 function postDailyScore(index) {
-    let POST_URL = `rlcsdle/daily`;
+    let POST_URL = "daily";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
-        POST_URL = "http://localhost:3000/" + POST_URL;
+        POST_URL = "http://localhost:3000/rlcsdle/" + POST_URL;
     }
     fetch(POST_URL, {
         method: "POST",
@@ -585,9 +585,9 @@ seasonSelect.onchange = () => {
     teamSelect.textContent = "";
     guessButton.setAttribute("disabled", "");
 
-    let SEASON_URL = "rlcsdle/season/";
+    let SEASON_URL = "season/";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
-        SEASON_URL = "http://localhost:3000/" + SEASON_URL;
+        SEASON_URL = "http://localhost:3000/rlcsdle/" + SEASON_URL;
     }
     let eventInfo = JSON.parse(localStorage.getItem("eventID"));
     let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];
@@ -618,9 +618,9 @@ splitSelect.onchange = () => {
     teamSelect.textContent = "";
     guessButton.setAttribute("disabled", "");
 
-    let SPLIT_URL = "rlcsdle/split/";
+    let SPLIT_URL = "split/";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
-        SPLIT_URL = "http://localhost:3000/" + SPLIT_URL;
+        SPLIT_URL = "http://localhost:3000/rlcsdle/" + SPLIT_URL;
     }
     let eventInfo = JSON.parse(localStorage.getItem("eventID"));
     let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];
@@ -648,9 +648,9 @@ eventSelect.onchange = () => {
     }
     teamSelect.removeAttribute("disabled");
 
-    let EVENT_URL = "rlcsdle/event/";
+    let EVENT_URL = "event/";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
-        EVENT_URL = "http://localhost:3000/" + EVENT_URL;
+        EVENT_URL = "http://localhost:3000/rlcsdle/" + EVENT_URL;
     }
     let eventInfo = JSON.parse(localStorage.getItem("eventID"));
     let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];

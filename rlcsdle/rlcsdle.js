@@ -29,9 +29,9 @@ function getRegionLabel(regionName) {
 }
 
 function getDaily() {
-    let DAILY_URL = "rlcsdle/daily";
+    let DAILY_URL = "daily";
     if (document.documentURI.startsWith("http://localhost:8000/")) {
-        DAILY_URL = "http://localhost:3000/" + DAILY_URL
+        DAILY_URL = "http://localhost:3000/rlcsdle/" + DAILY_URL
     }
 
     fetch(DAILY_URL, {
@@ -54,9 +54,9 @@ function getDaily() {
 }
 
 function getRound(regionName="LAN") {
-    let RLCS_URL = `rlcsdle/region/${regionName}`;
+    let RLCS_URL = `region/${regionName}`;
     if (document.documentURI.startsWith("http://localhost:8000/")) {
-        RLCS_URL = "http://localhost:3000/" + RLCS_URL
+        RLCS_URL = "http://localhost:3000/rlcsdle/" + RLCS_URL
     }
 
     fetch(RLCS_URL, {
