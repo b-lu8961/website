@@ -336,7 +336,10 @@ function addSelectOptions(elem, options) {
 }
 
 function setSeasonOptions() {
-    let SEASON_URL = "http://localhost:3000/rlcsdle/year"
+    let SEASON_URL = "rlcsdle/year";
+    if (document.documentURI.startsWith("http://localhost:8000/")) {
+        SEASON_URL = "http://localhost:3000/" + SEASON_URL
+    }
     fetch(SEASON_URL, {
         method: "GET"
     })
@@ -383,7 +386,10 @@ function initRound(response) {
 }
 
 function getRound(regionName="LAN") {
-    let RLCS_URL = `http://localhost:3000/rlcsdle/region/${regionName}`;
+    let RLCS_URL = `rlcsdle/region/${regionName}`;
+    if (document.documentURI.startsWith("http://localhost:8000/")) {
+        RLCS_URL = "http://localhost:3000/" + RLCS_URL
+    }
 
     fetch(RLCS_URL, {
         method: "GET"
@@ -483,7 +489,10 @@ seasonSelect.onchange = () => {
     teamSelect.textContent = "";
     guessButton.setAttribute("disabled", "");
 
-    let SEASON_URL = "http://localhost:3000/rlcsdle/season/";
+    let SEASON_URL = "rlcsdle/season/";
+    if (document.documentURI.startsWith("http://localhost:8000/")) {
+        SEASON_URL = "http://localhost:3000/" + SEASON_URL;
+    }
     let eventInfo = JSON.parse(localStorage.getItem("eventID"));
     let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];
     let params = `${seasonSelect.value}/${region}`;
@@ -513,7 +522,10 @@ splitSelect.onchange = () => {
     teamSelect.textContent = "";
     guessButton.setAttribute("disabled", "");
 
-    let SPLIT_URL = "http://localhost:3000/rlcsdle/split/";
+    let SPLIT_URL = "rlcsdle/split/";
+    if (document.documentURI.startsWith("http://localhost:8000/")) {
+        SPLIT_URL = "http://localhost:3000/" + SPLIT_URL;
+    }
     let eventInfo = JSON.parse(localStorage.getItem("eventID"));
     let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];
     let params = `${String(seasonSelect.value)}/${splitSelect.value}/${region}`;
@@ -540,7 +552,10 @@ eventSelect.onchange = () => {
     }
     teamSelect.removeAttribute("disabled");
 
-    let EVENT_URL = "http://localhost:3000/rlcsdle/event/";
+    let EVENT_URL = "rlcsdle/event/";
+    if (document.documentURI.startsWith("http://localhost:8000/")) {
+        EVENT_URL = "http://localhost:3000/" + EVENT_URL;
+    }
     let eventInfo = JSON.parse(localStorage.getItem("eventID"));
     let region = eventInfo[2] === "" ? "NONE" : eventInfo[2];
     let params = `${seasonSelect.value}/${splitSelect.value}/${region}/${eventSelect.value}`;
