@@ -20,7 +20,7 @@ function getRegionLabel(regionName) {
     } else if (regionName === "SAM") {
         return "South America"
     } else if (regionName === "MENA") {
-        return "Middle East & North Africa"
+        return "Middle East and North Africa"
     } else if (regionName === "APAC") {
         return "Asia-Pacific"
     } else {

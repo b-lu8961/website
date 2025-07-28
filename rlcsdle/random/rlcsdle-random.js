@@ -22,7 +22,7 @@ function getRegionLabel(regionName) {
     } else if (regionName === "SAM") {
         return "South America"
     } else if (regionName === "MENA") {
-        return "Middle East & North Africa"
+        return "Middle East and North Africa"
     } else if (regionName === "APAC") {
         return "Asia-Pacific"
     } else {
@@ -250,12 +250,13 @@ function setSeriesTeams(elemOne, elemTwo, seriesData, guessTeam, guessNumber) {
 }
 
 function setSeriesInfo(elem, seriesData, guessNumber) {
+    let casterStr = seriesData["casters"] !== null ? seriesData["casters"].join(" & ") : "Casters: N/A";
     if (guessNumber === 0) {
         elem.textContent = "Casters: ? | Date: ?"
     } else if (guessNumber < 4) {
-        elem.textContent = `${seriesData["casters"].join(" & ")} | Date: ?`;
+        elem.textContent = `${casterStr} | Date: ?`;
     } else {
-        elem.textContent = `${seriesData["casters"].join(" & ")} | ${seriesData["date"]}`;
+        elem.textContent = `${casterStr} | ${seriesData["date"]}`;
     }
 }
 
