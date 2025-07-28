@@ -74,8 +74,7 @@ function populateScore(teamData, guessNumber) {
     }
 
     let playerData = teamData["players"]
-    playerData = playerData.sort((a, b) => a["score"] - b["score"]);
-    const scoreBody = document.getElementById("score-body");
+    playerData = playerData.sort((a, b) => b["score"] - a["score"]);
     for (let i = 0; i < playerData.length; i++) {
         let currPlayer = playerData[i];
         const playerRow = document.getElementById(`player-${i}`);
