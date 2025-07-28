@@ -354,7 +354,10 @@ function setSeasonOptions() {
     })
     .then(response => {
         addSelectOptions(seasonSelect, response);
-    });
+    }).catch(error => { 
+        // this only fires in middle of page change?
+        // doesn't affect new page behavior
+    }); ;
 }
 
 function resetGuesses() {
@@ -681,6 +684,7 @@ teamSelect.onchange = () => {
 };
 
 newGameButton.onclick = () => {
+    localStorage.setItem("isDaily", "false");
     const newGameSelect = document.getElementById("gameRegionSelect");
     getRound(getRegionLabel(newGameSelect.value));
 }
@@ -696,7 +700,7 @@ guessButton.onclick = () => {
         populateScore(null, 10);
         postDailyScore(guessNumber - 1);
         let currDate = new Date();
-        localStorage.setItem("daily", currDate.toDateString());
+        localStorage.setItem("dailyDate", currDate.toDateString());
         localStorage.setItem("guessNumber", "10");
 
         const modalElem = document.getElementById("resultModal")
@@ -782,7 +786,7 @@ shareButton.onclick = () => {
 window.onload = (event) => {
     let guessNumber = parseInt(localStorage.getItem("guessNumber"));
     let currDate = new Date();
-    if (localStorage.getItem("daily") === currDate.toDateString()) {
+    if (localStorage.getItem("dailyDate") === currDate.toDateString()) {
         guessNumber = 10;
         localStorage.setItem("guessNumber", 10);
         guessButton.setAttribute("disabled", "");
@@ -790,5 +794,7 @@ window.onload = (event) => {
 
     initScore(JSON.parse(localStorage.getItem("teamData")));
     populateSeries(JSON.parse(localStorage.getItem("seriesData")), guessNumber);
-    restoreGuesses();
+    if (localStorage.getItem("isDaily") === "true") {
+        restoreGuesses();
+    }
 };

@@ -90,14 +90,16 @@ function initRound(response) {
 
 dailyButton.onclick = () => {
     let currDate = new Date();
-    if (localStorage.getItem("daily") === currDate.toDateString()) {
+    if (localStorage.getItem("isDaily") === "true" && localStorage.getItem("dailyDate") === currDate.toDateString()) {
         window.location.href = "/rlcsdle/daily/";
     } else {
+        localStorage.setItem("isDaily", "true");
         getDaily();
     }
 }
 
 newGameButton.onclick = () => {
+    localStorage.setItem("isDaily", "false");
     const regionSelect = document.getElementById("gameRegionSelect");
     getRound(getRegionLabel(regionSelect.value));
 }
