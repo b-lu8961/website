@@ -187,9 +187,9 @@ function getSeriesResult(series, guessTeam) {
 function getTeamName(teamName, guessTeam, guessNumber) {
     if (teamName === guessTeam) {
         if (guessNumber < 7) {
-            return "&nbsp;<strong>???</strong>&nbsp;";
+            return "<strong>???</strong>";
         } else {
-            return `&nbsp;<strong>${teamName}</strong>&nbsp;`;
+            return `<strong>${teamName}</strong>`;
         }
     } else {
         if (guessNumber === 0) {
@@ -215,23 +215,23 @@ function setSeriesTitle(elem, seriesData, guessTeam, guessNumber) {
     if (guessNumber === 0) {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.innerHTML = `${seriesRes} | Stage ? | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `<p class="mb-0">${seriesRes} | Stage ? | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}</p>`;
     } else if (guessNumber === 1) {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.innerHTML = `${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `<p class="mb-0">${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}</p>`;
     } else if (guessNumber === 2) {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.innerHTML = `${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `<p class="mb-0">${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}</p>`;
     } else if (guessNumber < 6) {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.innerHTML = `${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `<p class="mb-0">${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}</p>`;
     } else {
         let teamOne = getTeamName(seriesData["teams"][0], guessTeam, guessNumber);
         let teamTwo = getTeamName(seriesData["teams"][1], guessTeam, guessNumber);
-        elem.innerHTML = `${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}`;
+        elem.innerHTML = `<p class="mb-0">${seriesRes} | ${seriesData["stage"]} | ${teamOne} ${seriesData["wins"][0]} - ${seriesData["wins"][1]} ${teamTwo}</p>`;
     }
 }
 
