@@ -87,7 +87,18 @@ async function getCountries() {
     });
 }
 
-
+async function getMoviesByCountry(countryCode) {
+    let query = `SELECT Name, Year, Rating, Watch_Date FROM movie WHERE instr('|' || Countries || '|', '|' || '${countryCode}' || '|') > 0 ORDER BY Name`;
+    return new Promise((resolve, reject) => {
+        db.all(query, (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
 
 async function getNetwork() {
     return new Promise((resolve, reject) => {
@@ -101,9 +112,21 @@ async function getNetwork() {
     });
 }
 
+async function getUpdateDate() {
+    return new Promise((resolve, reject) => {
+        db.all("SELECT date FROM updateDate where Id = 0", (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
 module.exports = {
-    getByRating, 
+    getByRating, getUpdateDate,
     getRatingGroup, getYearGroup, getRuntimeGroup,
-    getTopJobs, getLanguages, getCountries,
+    getTopJobs, getLanguages, getCountries, getMoviesByCountry,
     getNetwork
 }

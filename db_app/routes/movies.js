@@ -17,6 +17,12 @@ router.get('/', async (req, res) => {
     res.json(data);
 });
 
+router.get('/updateDate', async (req, res) => {
+    checkCORS(req, res);
+    const data = await movieDB.getUpdateDate();
+    res.json(data);
+});
+
 router.get('/rating/:rating', async (req, res) => {
     checkCORS(req, res);
     const data = await movieDB.getByRating(parseFloat(req.params.rating));
@@ -102,6 +108,17 @@ router.get("/countries", async (req, res) => {
             countryObj[elem.ISO] = {name: elem.Name, count: elem.Count, avgRating: elem.AvgRating};
         })
         res.json(countryObj);
+    } catch (err) {
+        console.log(err);
+        res.send([]);
+    }
+});
+
+router.get("/country/:code", async (req, res) => {
+    checkCORS(req, res);
+    try {
+        const movieList = await movieDB.getMoviesByCountry(req.params.code);
+        res.json(movieList);
     } catch (err) {
         console.log(err);
         res.send([]);

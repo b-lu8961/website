@@ -435,14 +435,61 @@ function getNetworkData() {
     });
 }
 
+function populateCountryTable(data, append=false) {
+    const tableBody = document.getElementById("countryTable");
+
+    if (!append) {
+        tableBody.textContent = '';
+    }
+
+    for (movie of data) {
+        const templateBase = document.getElementById("tableRowTemplate");
+        const rowTemplate = templateBase.content.cloneNode(true);
+
+        const nameElem = rowTemplate.getElementById("tableName");
+        nameElem.textContent = movie["Name"];
+        const yearElem = rowTemplate.getElementById("tableYear");
+        yearElem.textContent = movie["Year"];
+        const ratingElem = rowTemplate.getElementById("tableRating");
+        ratingElem.textContent = movie["Rating"];
+        const dateElem = rowTemplate.getElementById("tableDate");
+        dateElem.textContent = movie["Watch_Date"];
+
+        tableBody.appendChild(rowTemplate);
+    }
+}
+
+function getMoviesByCountry(code, append=false) {
+    if (code === "CN-TW") {
+        code = "TW";
+    }
+
+    let db_endpoint = `movies/country/${code}`;
+    if (document.documentURI.startsWith("http://localhost:8000/letterboxd/")) {
+        db_endpoint = "http://localhost:3000/" + db_endpoint
+    }
+
+    fetch(db_endpoint, {
+        method: "GET"
+    })
+    .then(response => response.json())
+    .then(data => populateCountryTable(data, append))
+    .catch(error => {
+        console.log(error);
+    });
+}
+
 function drawMap(data) {
     if ("CN" in data) {
+        data["CN"].avgRating = ((data["CN"].avgRating * data["CN"].count) + (data["HK"].avgRating * data["HK"].count)) / (data["CN"].count + data["HK"].count);
         data["CN"].count += data["HK"].count;
-        data["CN"].avgRating = ((data["CN"].avgRating * data["CN"].count) + (data["HK"].avgRating * data["HK"].count)) / data["CN"].count;
     } else {
         data["CN"] = data["HK"];
     }
-    data["TW"]
+
+    data["RU"].avgRating = ((data["RU"].avgRating * data["RU"].count) + (data["SU"].avgRating * data["SU"].count)) / (data["RU"].count + data["SU"].count);
+    data["RU"].count += data["SU"].count;
+
     const mapDetail = document.getElementById("mapDetail");
     mapDetail.textContent = `United States of America | ${data["US"].count} movies | ${data["US"].avgRating.toPrecision(3)} average rating`;
     d3.json("../assets/world_map.geo.json").then(bb => {
@@ -497,6 +544,14 @@ function drawMap(data) {
 
         countries.on("click", event => {
             mapDetail.textContent = event.target.textContent;
+            let countryCode = event.target.__data__['properties']['iso_a2'];
+            getMoviesByCountry(countryCode, false);
+            if (countryCode === "CN") {
+                getMoviesByCountry("HK", true);
+            }
+            if (countryCode === "RU") {
+                getMoviesByCountry("SU", true);
+            }
         });
         
         const zoom = d3.zoom()
@@ -534,6 +589,26 @@ function getCountryData() {
     });
 }
 
+function setUpdateDate() {
+    let db_endpoint = "movies/updateDate";
+    if (document.documentURI.startsWith("http://localhost:8000/letterboxd/")) {
+        db_endpoint = "http://localhost:3000/" + db_endpoint
+    }
+
+    fetch(db_endpoint, {
+        method: "GET"
+    })
+    .then(response => response.json())
+    .then(data => {
+        let updateText = `Data from TMDB and Letterboxd (as of ${data[0]["date"]})`;
+        const updateElem = document.getElementById("movieUpdate");
+        updateElem.textContent = updateText;
+    })
+    .catch(error => {
+        console.log(error);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     boxdInput.value = "";
     localStorage.removeItem("currentFeed");
@@ -558,6 +633,7 @@ pillList.forEach(pill => {
                 getFeed(boxdInput.value);
             }
         } else if (pill.id === "pills-summary-tab") {
+            setUpdateDate();
             getSummaryData();
             getJobData("directors");
             getLanguageData();
