@@ -8,7 +8,7 @@ const config = require("./config");
 const app = express();
 const port = 3000;
 
-
+const calvinoRouter = require('./routes/calvino');
 const movieRouter = require('./routes/movies');
 const rlcsdleRouter = require('./routes/rlcsdle');
 
@@ -22,6 +22,7 @@ app.use('/movies', movieRouter);
 
 app.use('/rlcsdle/v1', rlcsdleRouter);
 
+app.use('/calvino', calvinoRouter);
 
 mongodb.MongoClient.connect(config.MONGO_CONN_STRING)
     .catch(err => console.error(err))
