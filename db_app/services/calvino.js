@@ -5,21 +5,31 @@ function analyzeText(data) {
     const freqData = {1: []};
 
     let text = data['data'];
+    let startLine = 0;
     if (data['type'] === "example") {
         text = fs.readFileSync(`../assets/novels/${text}.txt`, 'utf-8');
+        startLine = 2;
     }
-    text = text.replaceAll('\r', '');
     
+    text = text.replaceAll('\r', '');
     const textLines = text.split('\n');
-    const info = textLines[0].split(',');
-    const novel = textLines.slice(2, textLines.length);
+    const novel = textLines.slice(startLine, textLines.length);
+    
     let endDash = false;
     let prefix = "";
     for (line of novel) {
-        let newLine = line.replace("—", " ").replace(/[.,;?():"!]/g, "");
+        let newLine = line.replaceAll("—", " ").replace(/[.,;?():"!<>]/g, "");
         const lineWords = newLine.split(" ");
-        for (word of lineWords) {
+        for (let i = 0; i < lineWords.length; i++) {
+            let word = lineWords[i];
+            if (i === lineWords.length - 1 && word.charAt(word.length - 1) === "-") {
+                endDash = true;
+                prefix = word.slice(0, word.length - 1);
+                continue;
+            }
+
             let fullWord = endDash ? prefix + word : word;
+            endDash = false;
             if (fullWord === '') {
                 continue;
             }
@@ -48,9 +58,12 @@ function analyzeText(data) {
 
     const resData = [];
     for (entry of Object.entries(freqData)) {
-        resData.push([parseInt(entry[0]), entry[1].join(", ")]);
+        let sortedWords = entry[1].sort();
+        resData.push([parseInt(entry[0]), sortedWords.length, sortedWords.join(", ")]);
     }
-    return {info: info, freqData: resData };
+
+    let info = data['type'] === "example" ? textLines[0].split(' | ') : "You";
+    return { info: info, freqData: resData };
 }
 
 module.exports = { analyzeText }
