@@ -57,7 +57,9 @@ analyzeButton.onclick = () => {
     } else {
         const fileUpload = document.getElementById("fileInput");
         if (fileUpload.files.length !== 0 && fileUpload.files[0].type === "text/plain") {
-            analyzeText("file", FileReader.readAsText(fileUpload.files[0]));
+            fileUpload.files[0].text()
+            .then(data => analyzeText("file", data))
+            .catch(error => console.log(error));
         }
     }
 }
