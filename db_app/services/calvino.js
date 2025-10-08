@@ -51,6 +51,9 @@ function analyzeText(data) {
                 }
             } else {
                 wordData[fullWord] = 1;
+                if (!(1 in freqData)) {
+                    freqData[1] = [];
+                }
                 freqData[1].push(fullWord);
             }
         }
