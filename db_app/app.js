@@ -3,6 +3,7 @@
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express4';
 
+import cors from 'cors';
 import express, { text, json } from 'express';
 import { MongoClient } from 'mongodb';
 
@@ -36,7 +37,7 @@ app.use('/rlcsdle/v1', rlcsdleRouter);
 
 app.use('/calvino', calvinoRouter);
 
-app.use('/graphql', json(), expressMiddleware(apolloServer, {
+app.use('/graphql', cors(), json(), expressMiddleware(apolloServer, {
     context: async ({ req }) => ({
         db: req.app.locals.conn.db("cartographic")
     })

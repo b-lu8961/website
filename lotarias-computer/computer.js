@@ -1,5 +1,3 @@
-
-
 const analyzeButton = document.getElementById("analyzeButton");
 const wordGrid = new gridjs.Grid({
         columns: [
