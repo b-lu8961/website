@@ -1,11 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const computer = require('../services/calvino');
+import { Router } from 'express';
+const router = Router();
+import { analyzeText } from '../services/calvino.js';
 
-const Config = require("../config");
+import { ALLOWED_ORIGINS } from "../config.js";
 
 function checkCORS(req, res) {
-    if (Config.ALLOWED_ORIGINS.includes(req.headers.origin)) {
+    if (ALLOWED_ORIGINS.includes(req.headers.origin)) {
         res.header("Access-Control-Allow-Origin", req.headers.origin);
         res.header("Vary", "Origin");
     }
@@ -14,8 +14,8 @@ function checkCORS(req, res) {
 router.post('/', async (req, res) => {
     checkCORS(req, res);
 
-    const textData = computer.analyzeText(JSON.parse(req.body));
+    const textData = analyzeText(JSON.parse(req.body));
     res.send(textData);
 });
 
-module.exports = router;
+export default router;

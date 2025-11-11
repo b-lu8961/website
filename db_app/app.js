@@ -1,18 +1,30 @@
 #!/usr/bin/node
 
-const express = require('express');
-const mongodb = require("mongodb");
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@as-integrations/express4';
 
-const config = require("./config");
+import express, { text, json } from 'express';
+import { MongoClient } from 'mongodb';
+
+import { MONGO_CONN_STRING } from './config.js';
 
 const app = express();
 const port = 3000;
 
-const calvinoRouter = require('./routes/calvino');
-const movieRouter = require('./routes/movies');
-const rlcsdleRouter = require('./routes/rlcsdle');
+import calvinoRouter from './routes/calvino.js';
+import movieRouter from './routes/movies.js';
+import rlcsdleRouter from './routes/rlcsdle.js';
 
-app.use(express.text());
+import typeDefs from './services/graphql/schema.js';
+import resolvers from './services/graphql/resolvers.js';
+
+const apolloServer = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+});
+await apolloServer.start();
+
+app.use(text());
 
 app.get('/', (req, res) => {
     res.send("Hello world!!!");
@@ -24,7 +36,13 @@ app.use('/rlcsdle/v1', rlcsdleRouter);
 
 app.use('/calvino', calvinoRouter);
 
-mongodb.MongoClient.connect(config.MONGO_CONN_STRING)
+app.use('/graphql', json(), expressMiddleware(apolloServer, {
+    context: async ({ req }) => ({
+        db: req.app.locals.conn.db("cartographic")
+    })
+}));
+
+MongoClient.connect(MONGO_CONN_STRING)
     .catch(err => console.error(err))
     .then(conn => {
         app.locals.conn = conn;

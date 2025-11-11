@@ -41,7 +41,7 @@ async function getRoundByRegion(db, regionVal) {
 }
 
 function hasAnswer(prevData, currRound) {
-    for (prev of prevData) {
+    for (let prev of prevData) {
         let prevRound = prev["roundData"][0];
         if (prevRound[0][0] === currRound[0][0] && prevRound[0][1] === currRound[0][1] &&
             prevRound[0][2] === currRound[0][2] && prevRound[0][3] === currRound[0][3] &&
@@ -139,7 +139,7 @@ async function getTeamsFromEvent(db, seasonVal, splitVal, regionVal, eventVal) {
     return results["teams"].map((team) => team["name"]);
 }
 
-module.exports = {
+export {
     getDailyRound, addDailyResult,
     getRandomRound, getRoundByRegion, getSeriesFromIds, 
     getSeasons, getSplitsFromSeason, getEventsFromSplit, getTeamsFromEvent

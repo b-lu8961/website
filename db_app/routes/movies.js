@@ -1,31 +1,31 @@
-const express = require('express');
-const xml2js = require('xml2js');
-const router = express.Router();
-const movieDB = require("../services/movies");
+import { Router } from 'express';
+import { parseString } from 'xml2js';
+const router = Router();
+import { getByRating, getUpdateDate, getRatingGroup, getYearGroup, getRuntimeGroup, getTopJobs, getLanguages, getCountries, getMoviesByCountry, getNetwork } from "../services/movies.js";
 
-const Config = require("../config");
+import { ALLOWED_ORIGINS } from "../config.js";
 
 function checkCORS(req, res) {
-    if (Config.ALLOWED_ORIGINS.includes(req.headers.origin)) {
+    if (ALLOWED_ORIGINS.includes(req.headers.origin)) {
         res.header("Access-Control-Allow-Origin", req.headers.origin);
         res.header("Vary", "Origin");
     }
 }
 
 router.get('/', async (req, res) => {
-    const data = await movieDB.getByRating();
+    const data = await getByRating();
     res.json(data);
 });
 
 router.get('/updateDate', async (req, res) => {
     checkCORS(req, res);
-    const data = await movieDB.getUpdateDate();
+    const data = await getUpdateDate();
     res.json(data);
 });
 
 router.get('/rating/:rating', async (req, res) => {
     checkCORS(req, res);
-    const data = await movieDB.getByRating(parseFloat(req.params.rating));
+    const data = await getByRating(parseFloat(req.params.rating));
     res.json(data);
 });
 
@@ -37,7 +37,7 @@ router.get('/feed/:member', async (req, res) => {
         const api_res = await fetch(`https://www.letterboxd.com/${memberName}/rss`);
         
         const rss_xml = await api_res.text();
-        xml2js.parseString(rss_xml, (err, xml_res) => {
+        parseString(rss_xml, (err, xml_res) => {
             if (err) {
                 console.log(err.message);
                 res.send("error");
@@ -58,13 +58,13 @@ router.get('/groupby', async (req, res) => {
     const groupType = req.query.type ? req.query.type.toLowerCase() : "rating";
     try {
         if (groupType === "rating") {
-            const ratingData = await movieDB.getRatingGroup();
+            const ratingData = await getRatingGroup();
             res.json(ratingData);
         } else if (groupType === "decade") {
-            const yearData = await movieDB.getYearGroup();
+            const yearData = await getYearGroup();
             res.json(yearData);   
         } else if (groupType === "runtime") {
-            const runtimeData = await movieDB.getRuntimeGroup();
+            const runtimeData = await getRuntimeGroup();
             res.json(runtimeData);
         } else {
             res.send([]);
@@ -80,7 +80,7 @@ router.get("/top/:job", async (req, res) => {
 
     const jobName = req.params.job ? req.params.job : "Directors";
     try {
-        const jobData = await movieDB.getTopJobs(jobName.slice(0, -1));
+        const jobData = await getTopJobs(jobName.slice(0, -1));
         res.json(jobData);
     } catch (err) {
         console.log(err);
@@ -91,7 +91,7 @@ router.get("/top/:job", async (req, res) => {
 router.get("/languages", async (req, res) => {
     checkCORS(req, res);
     try {
-        const languageData = await movieDB.getLanguages();
+        const languageData = await getLanguages();
         res.json(languageData);
     } catch (err) {
         console.log(err);
@@ -102,7 +102,7 @@ router.get("/languages", async (req, res) => {
 router.get("/countries", async (req, res) => {
     checkCORS(req, res);
     try {
-        const countryData = await movieDB.getCountries();
+        const countryData = await getCountries();
         const countryObj = {};
         countryData.forEach(elem => {
             countryObj[elem.ISO] = {name: elem.Name, count: elem.Count, avgRating: elem.AvgRating};
@@ -117,7 +117,7 @@ router.get("/countries", async (req, res) => {
 router.get("/country/:code", async (req, res) => {
     checkCORS(req, res);
     try {
-        const movieList = await movieDB.getMoviesByCountry(req.params.code);
+        const movieList = await getMoviesByCountry(req.params.code);
         res.json(movieList);
     } catch (err) {
         console.log(err);
@@ -128,7 +128,7 @@ router.get("/country/:code", async (req, res) => {
 router.get("/network", async (req, res) => {
     checkCORS(req, res);
     try {
-        const networkRows = await movieDB.getNetwork();
+        const networkRows = await getNetwork();
         const networkData = { nodes: [], links: [] };
         const actors = {};
         const movies = {};
@@ -173,4 +173,4 @@ router.get("/network", async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

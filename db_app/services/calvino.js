@@ -1,4 +1,4 @@
-const fs = require('fs');
+import { readFileSync } from 'fs';
 
 function analyzeText(data) {
     const wordData = {}
@@ -7,17 +7,17 @@ function analyzeText(data) {
     let text = data['data'];
     let startLine = 0;
     if (data['type'] === "example") {
-        text = fs.readFileSync(`../assets/novels/${text}.txt`, 'utf-8');
+        text = readFileSync(`../assets/novels/${text}.txt`, 'utf-8');
         startLine = 2;
     }
     
     text = text.replaceAll('\r', '');
     const textLines = text.split('\n');
     const novel = textLines.slice(startLine, textLines.length);
-    
+
     let endDash = false;
     let prefix = "";
-    for (line of novel) {
+    for (let line of novel) {
         let newLine = line.replaceAll("—", " ").replace(/[.,;?():"!<>]/g, "");
         const lineWords = newLine.split(" ");
         for (let i = 0; i < lineWords.length; i++) {
@@ -60,7 +60,7 @@ function analyzeText(data) {
     }
 
     const resData = [];
-    for (entry of Object.entries(freqData)) {
+    for (let entry of Object.entries(freqData)) {
         let sortedWords = entry[1].sort();
         resData.push([parseInt(entry[0]), sortedWords.length, sortedWords.join(", ")]);
     }
@@ -69,4 +69,4 @@ function analyzeText(data) {
     return { info: info, freqData: resData };
 }
 
-module.exports = { analyzeText }
+export { analyzeText }

@@ -1,4 +1,4 @@
-const sqlite3 = require('sqlite3');
+import sqlite3 from 'sqlite3';
 const db = new sqlite3.Database("./assets/movies.db", sqlite3.OPEN_READONLY);
 
 
@@ -51,7 +51,7 @@ async function getRuntimeGroup() {
 }
 
 async function getTopJobs(jobName) {
-    query = `SELECT p.Name, p.image_path as Path, COUNT(*) as Count from person p join movie m where instr('|' || m.${jobName} || '|', '|' || p.id || '|') > 0 GROUP BY p.Name ORDER BY Count DESC LIMIT 3`;
+    let query = `SELECT p.Name, p.image_path as Path, COUNT(*) as Count from person p join movie m where instr('|' || m.${jobName} || '|', '|' || p.id || '|') > 0 GROUP BY p.Name ORDER BY Count DESC LIMIT 3`;
     return new Promise((resolve, reject) => {
         db.all(query, (err, rows) => {
             if (err) {
@@ -124,7 +124,7 @@ async function getUpdateDate() {
     });
 }
 
-module.exports = {
+export {
     getByRating, getUpdateDate,
     getRatingGroup, getYearGroup, getRuntimeGroup,
     getTopJobs, getLanguages, getCountries, getMoviesByCountry,
