@@ -85,8 +85,9 @@ function onPinClick(ev) {
 function fetchPins(map) {
     const allQuery = `{
         getAllLocations {
-            lat
-            lng
+            point {
+                coordinates
+            }
             name
         }
     }`
@@ -101,7 +102,8 @@ function fetchPins(map) {
     .then(response => response.json())
     .then(res => {
         for (elem of res.data.getAllLocations) {
-            let newMarker = L.marker([elem.lat, elem.lng], {
+            let coords = [elem.point.coordinates[1], elem.point.coordinates[0]];
+            let newMarker = L.marker(coords, {
                 title: elem.name,
                 riseOnHover: true
             }).addTo(map);

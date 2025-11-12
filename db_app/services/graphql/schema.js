@@ -1,7 +1,11 @@
 const typeDefs = `
+    type GeoPoint {
+        type: String!
+        coordinates: [Float!]!
+    }
+
     type Photo {
-        lat: Float!
-        lng: Float!
+        point: GeoPoint!
         name: String!
         displayNum: Int
         date: String
@@ -11,8 +15,7 @@ const typeDefs = `
     }
 
     type Location {
-        lat: Float!
-        lng: Float!
+        point: GeoPoint!
         name: String
         tags: [String]
     }
@@ -23,19 +26,18 @@ const typeDefs = `
         getPhotos(lat: Float!, lng: Float!): [Photo]
     }
 
-    input AddPhotoInput {
-        lat: Float!
-        lng: Float!
-        name: String!
-        displayNum: Int
-        date: String
-        isExterior: Boolean
-        description: String
-        tags: [String]
-    }
-
     type Mutation {
-        addPhoto(photo: AddPhotoInput): Photo
+        addPhoto(
+            lat: Float!
+            lng: Float!
+            name: String!
+            locationName: String
+            displayNum: Int
+            date: String
+            isExterior: Boolean
+            description: String
+            tags: [String]
+        ): String
     }
 `
 
