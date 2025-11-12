@@ -82,7 +82,7 @@ function onPinClick(ev) {
     .catch(error => console.log(error));
 }
 
-function fetchPins(map) {
+function fetchPins(map, markerLayer) {
     const allQuery = `{
         getAllLocations {
             point {
@@ -106,9 +106,12 @@ function fetchPins(map) {
             let newMarker = L.marker(coords, {
                 title: elem.name,
                 riseOnHover: true
-            }).addTo(map);
+            })
             newMarker.on('click', onPinClick);
+            markerLayer.addLayer(newMarker);
         }
+
+        map.addLayer(markerLayer);
     })
     .catch(error => console.log(error));
 }
@@ -121,7 +124,8 @@ function initMap() {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
-    fetchPins(map);
+    var markerLayer = L.markerClusterGroup();
+    fetchPins(map, markerLayer);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
