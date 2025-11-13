@@ -39,6 +39,7 @@ app.use('/calvino', calvinoRouter);
 
 app.use('/graphql', cors(), json(), expressMiddleware(apolloServer, {
     context: async ({ req }) => ({
+        auth: req.headers.authorization,
         db: req.app.locals.conn.db("cartographic")
     })
 }));

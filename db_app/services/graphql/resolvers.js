@@ -1,3 +1,6 @@
+import { GraphQLError } from "graphql";
+import { GRAPHQL_AUTH_KEY } from "../../config.js";
+
 function getGeoPoint(lat, lng) {
     return {
         type: "Point",
@@ -23,6 +26,15 @@ const resolvers = {
     }, 
     Mutation: {
         addPhoto: async (_, args, contextValue) => {
+            if (contextValue.auth !== GRAPHQL_AUTH_KEY) {
+                throw new GraphQLError("User is not authorized", {
+                    extensions: {
+                        code: "UNAUTHORIZED",
+                        http: { status: 401 }
+                    }
+                });
+            }
+
             const photos = contextValue.db.collection("photos");
             const locations = contextValue.db.collection("locations");
             
