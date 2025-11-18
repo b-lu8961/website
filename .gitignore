@@ -75,3 +75,4 @@ out
 
 novels/
 assets/cartographic/
+*.db

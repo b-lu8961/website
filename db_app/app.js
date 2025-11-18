@@ -15,6 +15,7 @@ const port = 3000;
 import calvinoRouter from './routes/calvino.js';
 import movieRouter from './routes/movies.js';
 import rlcsdleRouter from './routes/rlcsdle.js';
+import photoRouter from './routes/photos.js';
 
 import typeDefs from './services/graphql/schema.js';
 import resolvers from './services/graphql/resolvers.js';
@@ -43,6 +44,8 @@ app.use('/graphql', cors(), json(), expressMiddleware(apolloServer, {
         db: req.app.locals.conn.db("cartographic")
     })
 }));
+
+app.use('/carto-photos', photoRouter)
 
 MongoClient.connect(MONGO_CONN_STRING)
     .catch(err => console.error(err))

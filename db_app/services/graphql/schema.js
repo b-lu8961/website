@@ -21,9 +21,9 @@ const typeDefs = `
     }
 
     type Query {
-        getAllLocations: [Location]
-        getLocationsByTags(tags: [String!]!): [Location]
-        getPhotos(lat: Float!, lng: Float!): [Photo]
+        getAllLocations: [Location!]!
+        getLocationsByTags(tags: [String!]!): [Location!]!
+        getPhotos(lat: Float!, lng: Float!): [Photo!]!
     }
 
     type Mutation {
