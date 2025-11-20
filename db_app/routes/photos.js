@@ -38,7 +38,7 @@ function checkCORS(req, res) {
 router.get('/:lat/:lng/:name', async (req, res) => {
     checkCORS(req, res);
     
-    const imagePath = path.join(CARTOGRAPHIC_IMAGES_PATH, getCoordString(lat, lng), req.params.name)
+    const imagePath = path.join(CARTOGRAPHIC_IMAGES_PATH, getCoordString(req.params.lat, req.params.lng), req.params.name)
     res.sendFile(imagePath);
 });
 
