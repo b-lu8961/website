@@ -39,15 +39,20 @@ const resolvers = {
             const locations = contextValue.db.collection("locations");
             
             let geoPoint = getGeoPoint(args.lat, args.lng);
-            let photoId = await photos.insertOne({
-                point: geoPoint,
-                name: args.name,
-                displayNum: args.displayNum,
-                date: args.date,
-                isExterior: args.isExterior,
-                description: args.description,
-                tags: args.tags
-            })
+            let filter = { point: geoPoint, name: args.name }
+            let doc = {
+                $set: {
+                    point: geoPoint,
+                    name: args.name,
+                    displayNum: args.displayNum,
+                    date: args.date,
+                    isExterior: args.isExterior,
+                    description: args.description,
+                    tags: args.tags
+                }
+            }
+            let options = { upsert: true }
+            let updateResult = await photos.updateOne(filter, doc, options)
 
             let docCount = await locations.countDocuments({ point: geoPoint }, { limit: 1 });
             if (docCount === 1) {
@@ -65,7 +70,7 @@ const resolvers = {
                 });
             }
 
-            return photoId.insertedId;
+            return updateResult.upsertedId === null ? "UPDATED" : `INSERTED`;
         }
     }
 };

@@ -11,13 +11,13 @@ const typeDefs = `
         date: String
         isExterior: Boolean
         description: String
-        tags: [String]
+        tags: [String!]
     }
 
     type Location {
         point: GeoPoint!
         name: String
-        tags: [String]
+        tags: [String!]!
     }
 
     type Query {
@@ -36,8 +36,8 @@ const typeDefs = `
             date: String
             isExterior: Boolean
             description: String
-            tags: [String]
-        ): String
+            tags: [String!]
+        ): String!
     }
 `
 

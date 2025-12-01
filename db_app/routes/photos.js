@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { existsSync, mkdirSync } from 'fs';
 import multer from 'multer';
 import * as path from 'path'
-import { ALLOWED_ORIGINS, CARTOGRAPHIC_IMAGES_PATH } from "../config.js";
+import { ALLOWED_ORIGINS, CARTOGRAPHIC_IMAGES_PATH, GRAPHQL_AUTH_KEY } from "../config.js";
 
 const router = Router();
 
@@ -35,6 +35,13 @@ function checkCORS(req, res) {
     }
 }
 
+const checkAuth = function (req, res, next) {
+    if (req.headers.authorization !== GRAPHQL_AUTH_KEY) {
+        throw new Error("User is not authorized");
+    }
+    next();
+}
+
 router.get('/:lat/:lng/:name', async (req, res) => {
     checkCORS(req, res);
     
@@ -42,12 +49,18 @@ router.get('/:lat/:lng/:name', async (req, res) => {
     res.sendFile(imagePath);
 });
 
-router.post('/', upload.array('photos'), async (req, res, next) => {
+router.post('/', checkAuth, upload.array('photos'), async (req, res, next) => {
     checkCORS(req, res);
-
-    console.log(req.files.length);
     
     res.status(200).send({ msg: "Succeeded" });
+});
+
+router.options('/', async (req, res) => {
+    checkCORS(req, res)
+
+    res.header("Access-Control-Allow-Headers", "Authorization");
+    res.header("Access-Control-Allow-Methods", "POST");
+    res.status(200).send();
 });
 
 export default router;
