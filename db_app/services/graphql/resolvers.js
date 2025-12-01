@@ -27,12 +27,11 @@ const resolvers = {
     Mutation: {
         addPhoto: async (_, args, contextValue) => {
             if (contextValue.auth !== GRAPHQL_AUTH_KEY) {
-                throw new GraphQLError("User is not authorized", {
-                    extensions: {
-                        code: "UNAUTHORIZED",
-                        http: { status: 401 }
-                    }
-                });
+                return {
+                    code: 401,
+                    message: "User is not authorized",
+                    result: "ERROR"
+                };
             }
 
             const photos = contextValue.db.collection("photos");
@@ -70,7 +69,11 @@ const resolvers = {
                 });
             }
 
-            return updateResult.upsertedId === null ? "UPDATED" : `INSERTED`;
+            return {
+                code: 200,
+                message: "addPhoto success",
+                result: updateResult.upsertedId === null ? "UPDATED" : "INSERTED"
+            };
         }
     }
 };

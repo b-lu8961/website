@@ -26,6 +26,17 @@ const typeDefs = `
         getPhotos(lat: Float!, lng: Float!): [Photo!]!
     }
 
+    interface MutationResponse {
+        code: Int!
+        message: String!
+    }
+
+    type AddPhotoResponse implements MutationResponse {
+        code: Int!
+        message: String!
+        result: String!
+    }
+
     type Mutation {
         addPhoto(
             lat: Float!
@@ -37,7 +48,7 @@ const typeDefs = `
             isExterior: Boolean
             description: String
             tags: [String!]
-        ): String!
+        ): AddPhotoResponse!
     }
 `
 
