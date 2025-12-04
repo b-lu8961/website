@@ -1,4 +1,3 @@
-import { GraphQLError } from "graphql";
 import { GRAPHQL_AUTH_KEY } from "../../config.js";
 
 function getGeoPoint(lat, lng) {
@@ -16,7 +15,7 @@ const resolvers = {
         },
         getLocationsByTags: async (_, args, contextValue) => {
             const locations = contextValue.db.collection("locations");
-            return await locations.find({ tags: { $in: args.tags } }).toArray();
+            return await locations.find({ "tags.name": { $in: args.tags } }).toArray();
         },
         getPhotos: async (_, args, contextValue) => {
             let geoPoint = getGeoPoint(args.lat, args.lng);
@@ -55,17 +54,22 @@ const resolvers = {
 
             let docCount = await locations.countDocuments({ point: geoPoint }, { limit: 1 });
             if (docCount === 1) {
-                await locations.updateOne(
+                // Location already exists
+                let currLocation = await locations.findOneAndUpdate(
                     { point: geoPoint },
-                    { 
-                        $addToSet: { tags: { $each: args.tags } } 
-                    }
+                    { $inc: { "tags.$[elem].value": 1 } }, { arrayFilters: [{"elem.name": { $in: args.tags } }] }
                 )
+
+                let locationTags = currLocation.tags.map((tag) => tag.name);
+                let tagsToAdd = args.tags.filter((tag) => !locationTags.includes(tag)).map((tag) => Object({name: tag, value: 1}));
+                await locations.updateOne({ point: geoPoint }, { $push: { tags: { $each: tagsToAdd } } });
             } else {
+                // New Location
+                let locTags = args.tags.map((tag) => Object({name: tag, value: 1}));
                 await locations.insertOne({
                     point: geoPoint,
                     name: args.locationName,
-                    tags: args.tags
+                    tags: locTags
                 });
             }
 
@@ -74,6 +78,71 @@ const resolvers = {
                 message: "addPhoto success",
                 result: updateResult.upsertedId === null ? "UPDATED" : "INSERTED"
             };
+        },
+        removePhoto: async (_, args, contextValue) => {
+            if (contextValue.auth !== GRAPHQL_AUTH_KEY) {
+                return {
+                    code: 401,
+                    message: "User is not authorized",
+                    result: "ERROR"
+                };
+            }
+
+            const photos = contextValue.db.collection("photos");
+            const locations = contextValue.db.collection("locations");
+            
+            let geoPoint = getGeoPoint(args.lat, args.lng);
+            let filter = { point: geoPoint, name: args.name };
+
+            let deleteResult = await photos.findOneAndDelete(filter);
+            if (deleteResult !== null) {
+                let docCount = await photos.countDocuments({ point: geoPoint });
+                if (docCount === 0) {
+                    // Location has no more photos
+                    await locations.deleteOne({ point: geoPoint });
+                } else {
+                    // Location has remaining photos
+                    await locations.updateOne(
+                        { point: geoPoint },
+                        [
+                            { $set: { 
+                                "tags": { 
+                                    $map: { 
+                                        input: "$tags", 
+                                        as: "t", 
+                                        in: { 
+                                            $cond: [
+                                                { $in: ["$$t.name", deleteResult.tags] }, 
+                                                { name: "$$t.name", value: { $add: ["$$t.value", -1] } }, 
+                                                "$$t"
+                                            ] 
+                                        } 
+                                    } 
+                                } 
+                            } }, 
+                            { $set: { 
+                                tags: { 
+                                    $filter: { 
+                                        input: "$tags", 
+                                        as: "t", 
+                                        cond: { $gte: ["$$t.value", 1] } 
+                                    } 
+                                } 
+                            } }
+                        ]
+                    );
+                }
+
+                return {
+                    code: 200,
+                    message: "removePhoto success"
+                };
+            } else {
+                return {
+                    code: 404,
+                    message: "Photo not found"
+                };
+            }
         }
     }
 };

@@ -37,6 +37,11 @@ const typeDefs = `
         result: String!
     }
 
+    type RemovePhotoResponse implements MutationResponse {
+        code: Int!
+        message: String!
+    }
+
     type Mutation {
         addPhoto(
             lat: Float!
@@ -49,6 +54,12 @@ const typeDefs = `
             description: String
             tags: [String!]
         ): AddPhotoResponse!
+
+        removePhoto(
+            lat: Float!
+            lng: Float!
+            name: String!
+        ): RemovePhotoResponse!
     }
 `
 
