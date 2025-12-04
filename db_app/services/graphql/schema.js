@@ -14,10 +14,15 @@ const typeDefs = `
         tags: [String!]
     }
 
+    type LocationTag {
+        name: String!
+        value: Int!
+    }
+
     type Location {
         point: GeoPoint!
         name: String
-        tags: [String!]!
+        tags: [LocationTag!]!
     }
 
     type Query {

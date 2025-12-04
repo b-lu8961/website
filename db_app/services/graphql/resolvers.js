@@ -1,4 +1,6 @@
-import { GRAPHQL_AUTH_KEY } from "../../config.js";
+import { existsSync, rmSync, rmdirSync } from 'fs';
+import * as path from 'path'
+import { CARTOGRAPHIC_IMAGES_PATH, GRAPHQL_AUTH_KEY } from "../../config.js";
 
 function getGeoPoint(lat, lng) {
     return {
@@ -133,10 +135,27 @@ const resolvers = {
                     );
                 }
 
-                return {
-                    code: 200,
-                    message: "removePhoto success"
-                };
+                // Delete photo from server
+                const dirPath = path.join(
+                    CARTOGRAPHIC_IMAGES_PATH,
+                    `${Number(args.lat).toFixed(4)},${Number(args.lng).toFixed(4)}`
+                );
+                if (existsSync(path.join(dirPath, args.name))) {
+                    rmSync(path.join(dirPath, args.name));
+                    if (docCount === 0) {
+                        rmdirSync(dirPath);
+                    }
+
+                    return {
+                        code: 200,
+                        message: "removePhoto success"
+                    };
+                } else {
+                    return {
+                        code: 404,
+                        message: "Photo removed from database, but not found on server"
+                    }
+                }
             } else {
                 return {
                     code: 404,
