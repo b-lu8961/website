@@ -47,6 +47,11 @@ const typeDefs = `
         message: String!
     }
 
+    type EditLocationResponse implements MutationResponse {
+        code: Int!
+        message: String!
+    }
+
     type Mutation {
         addPhoto(
             lat: Float!
@@ -65,6 +70,15 @@ const typeDefs = `
             lng: Float!
             name: String!
         ): RemovePhotoResponse!
+
+        editLocation(
+            oldLat: Float!
+            oldLng: Float!
+            oldName: String!
+            newLat: Float!
+            newLng: Float!
+            newName: String!
+        ): EditLocationResponse!
     }
 `
 

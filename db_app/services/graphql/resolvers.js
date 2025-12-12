@@ -1,4 +1,4 @@
-import { existsSync, rmSync, rmdirSync } from 'fs';
+import { existsSync, renameSync, rmSync, rmdirSync } from 'fs';
 import * as path from 'path'
 import { CARTOGRAPHIC_IMAGES_PATH, GRAPHQL_AUTH_KEY } from "../../config.js";
 
@@ -6,7 +6,14 @@ function getGeoPoint(lat, lng) {
     return {
         type: "Point",
         coordinates: [lng, lat]
-    }
+    };
+}
+
+function getDirectory(lat, lng) {
+    return path.join(
+        CARTOGRAPHIC_IMAGES_PATH,
+        `${Number(lat).toFixed(4)},${Number(lng).toFixed(4)}`
+    );
 }
 
 const resolvers = {
@@ -85,8 +92,7 @@ const resolvers = {
             if (contextValue.auth !== GRAPHQL_AUTH_KEY) {
                 return {
                     code: 401,
-                    message: "User is not authorized",
-                    result: "ERROR"
+                    message: "User is not authorized"
                 };
             }
 
@@ -136,10 +142,7 @@ const resolvers = {
                 }
 
                 // Delete photo from server
-                const dirPath = path.join(
-                    CARTOGRAPHIC_IMAGES_PATH,
-                    `${Number(args.lat).toFixed(4)},${Number(args.lng).toFixed(4)}`
-                );
+                const dirPath = getDirectory(args.lat, args.lng);
                 if (existsSync(path.join(dirPath, args.name))) {
                     rmSync(path.join(dirPath, args.name));
                     if (docCount === 0) {
@@ -162,6 +165,55 @@ const resolvers = {
                     message: "Photo not found"
                 };
             }
+        },
+        editLocation: async (_, args, contextValue) => {
+            if (contextValue.auth !== GRAPHQL_AUTH_KEY) {
+                return {
+                    code: 401,
+                    message: "User is not authorized"
+                };
+            }
+
+            const photos = contextValue.db.collection("photos");
+            const locations = contextValue.db.collection("locations");
+            
+            let oldPoint = getGeoPoint(args.oldLat, args.oldLng);
+            const filter = { point: oldPoint };
+
+            let locationDoc = { $set: {} };
+            if (args.oldLat !== args.newLat || args.oldLng !== args.newLng) {
+                let newPoint = getGeoPoint(args.newLat, args.newLng);
+                locationDoc["$set"].point = newPoint;
+                let photoResult = await photos.updateMany(filter, {
+                    $set: {
+                        point: newPoint
+                    }
+                });
+                if (photoResult.modifiedCount < 1) {
+                    return {
+                        code: 404,
+                        message: "Location not found"
+                    };
+                }
+
+                renameSync(getDirectory(args.oldLat, args.oldLng), getDirectory(args.newLat, args.newLng));
+            }
+            if (args.oldName !== args.newName) {
+                locationDoc["$set"].name = args.newName;
+            }
+
+            let locationResult = await locations.updateOne(filter, locationDoc);
+            if (locationResult.modifiedCount < 1) {
+                return {
+                    code: 404,
+                    message: "Location not found"
+                };
+            }
+
+            return {
+                code: 200,
+                message: "editLocation success"
+            };
         }
     }
 };
