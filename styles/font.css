@@ -1,0 +1,9 @@
+@font-face {
+    font-family: "Ignota";
+    src: url("../assets/MusicaIgnota.ttf");
+}
+
+.ignota {
+    font-family: "Ignota";
+    font-size: xx-large;
+}
