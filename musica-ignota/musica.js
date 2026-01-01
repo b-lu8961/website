@@ -7,7 +7,7 @@ const playButton = document.getElementById("playButton");
 const INITIALS = ["A", "B", "C", "D", "E"];
 const UPS = ["a", "b", "c", "d"];
 const DOWNS = ["f", "g", "h", "i"];
-const DIACRITICS = ["o", "3", "-", "^", "8"];
+const DIACRITICS = ["o", "#", "-", "^", "%"];
 
 const NOTES = {
     1: 16.351, // C0
