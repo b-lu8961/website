@@ -3,5 +3,12 @@ export interface PlayerData {
     label: string;
     value?: number;
     list?: number[];
-    initial: boolean;
+    initial?: boolean;
+}
+
+export interface FontData {
+    char: string;
+    category: string;
+    order: number;
+    info: string;
 }

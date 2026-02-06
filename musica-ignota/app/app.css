@@ -2,7 +2,7 @@
 
 @font-face {
     font-family: "Ignota";
-    src: url("../public/MusicaIgnota.ttf");
+    src: url("/MusicaIgnota.ttf");
 }
 
 @theme {
