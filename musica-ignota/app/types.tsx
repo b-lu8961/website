@@ -12,3 +12,14 @@ export interface FontData {
     order: number;
     info: string;
 }
+
+export interface WordData {
+    shape: number[];
+    definition: string;
+}
+
+export interface LexData {
+    contours: WordData[];
+    sequences: WordData[];
+    particles: WordData[];
+}

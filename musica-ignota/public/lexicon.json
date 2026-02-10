@@ -1,0 +1,28 @@
+{
+	"contours": [
+		{
+			"shape": [1, 1],
+			"definition": "big"
+		},
+		{
+			"shape": [-1, -1],
+			"definition": "small"
+		}
+	],
+	"sequences": [
+		{
+			"shape": [1, 1],
+			"definition": "Noun - subject"
+		},
+		{
+			"shape": [1, 2],
+			"definition": "Noun - direct object"
+		}
+	],
+	"particles": [
+		{
+			"shape": [-1, 1],
+			"definition": "introduces dependent clause"
+		}
+	]
+}
